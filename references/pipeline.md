@@ -45,7 +45,7 @@ node bin/paint.mjs qa      video.mp4 [--still frame.png --t 5]
 - `motion_median` / `motion_max`: mean absolute frame-to-frame difference (0–255 scale, 320 px grey copy). Typical: reveal 0.3–1, living 0.3–1, with boil 1–2. `spikes` lists instants where a frame jumps > 8× the median — a pop, a layer appearing at once, or a seed changing between frames.
 - `frozen_frames`: identical consecutive frames (expected only during deliberate holds).
 - `black_segments`.
-- `still_psnr_db` (with `--still --t`): decoded frame vs the PNG still of the same instant (the still is scaled to the video's size, so any still size works); ≥ 30 dB means colours survived encoding (36 dB measured on the examples). Render the still and run `qa --still` with the SAME `--t`, and not the very end: the last frame of a video is at `duration − 1/fps`.
+- `still_psnr_db` (with `--still --t`): decoded frame vs the PNG still of the same instant (render the still at the SAME `--size` as the video: canvas grain and stroke texture are resolution-dependent, so a still of another size scores ≈ 29–30 dB and fails even when nothing is wrong); ≥ 30 dB means colours survived encoding (36 dB measured on the examples). Render the still and run `qa --still` with the SAME `--t`, and not the very end: the last frame of a video is at `duration − 1/fps`.
 
 Automatic checks do not judge the painting. Always also look at: the final still, the timeline sheet, and frames pulled from the MP4. Say in your report which of these you did.
 

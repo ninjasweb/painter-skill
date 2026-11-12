@@ -41,6 +41,38 @@ The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This r
 
 Rendering runs locally and needs no image or video API keys. The agent writing and reviewing the scene uses its own model and environment.
 
+### What a scene looks like
+
+A scene is a plain JavaScript module. The agent mixes paint from named pigments, places each mix on a value plan, and paints back to front; the engine handles the brush, the canvas, and time.
+
+```js
+import { Painting, mix, tone, skyColor, paintSky, ridge, paintHills, paintGrass, key, ease } from 'painter';
+export const meta = { duration: 16, fps: 30 };
+
+export default function ({ aspect, seed }) {
+  const p = new Painting({ aspect, seed, ground: '#c9b89a' });      // toned canvas, never white
+  p.duration = 16;
+
+  // palette: real pigment mixes, each placed at a planned value (0 black … 1 white)
+  const skyTop = tone(mix({ ultramarine: 2, titaniumWhite: 2 }), 0.72);
+  const skyLow = tone(mix({ cadmiumOrange: 1, titaniumWhite: 3 }), 0.88);
+  const hillCol = tone(mix({ ultramarine: 1, burntUmber: 1 }), 0.3);
+
+  p.phase('sky');                                                     // far to near, like a painter
+  paintSky(p.layer('sky', { depth: 0 }), { color: skyColor({ top: 0, bottom: 0.7, stops: [[0, skyTop], [1, skyLow]] }), bottom: 0.72 });
+  p.phase('land');
+  paintHills(p.layer('hill', { depth: 0.6 }), { top: ridge({ y: 0.68, amp: 0.05, freq: 2, seed }), color: () => hillCol });
+  paintGrass(p.layer('grass', { depth: 1 }), { bounds: [0, 0.8, aspect, 1.05], dark: hillCol, light: tone(hillCol, 0.5), blade: 0.05 });
+
+  p.timelapse({ start: 0.3, end: 10 });                               // painted on in 10 s …
+  p.camera = (t) => ({ zoom: key(t, [[10, 1], [16, 1.07]], ease.inOut) });   // … then it comes alive
+  p.wind = (t) => ({ strength: key(t, [[0, 0], [10, 0.15], [12, 1]]) });
+  return p;
+}
+```
+
+Ready-made painters cover skies, sun and moon, cumulus and storm clouds, rays, hills, mountains, water, trees, firs, pines, grass, rocks, houses, boats, figures, and smoke; anything else is built from `layer.stroke`, `layer.scatter`, and `layer.path`. See the [Engine API](references/api.md).
+
 ## Watch the process
 
 The workflow connects artistic decisions with visual checks:
@@ -75,7 +107,7 @@ GIF previews use 640 px and 10 fps. The MP4s retain 1280 × 720 at 30 fps, compr
 
 ### Recent results
 
-These samples come from the latest iterations of work produced with the skill. They demonstrate the workflow; the six files in `examples/` are starter scenes.
+**All four were painted by agents that had never seen the skill before**: each one received only this folder and a one-paragraph brief, read SKILL.md, wrote its own scene, critiqued its stills, and delivered the video. These cold tests are how the skill was validated; the six files in `examples/` are starter scenes.
 
 <table>
 <tr>
@@ -137,9 +169,24 @@ Clone the repository into a new skill directory:
 ```bash
 git clone https://github.com/ninjasweb/painter-skill.git \
   ~/.claude/skills/painterly-video
+
+# install the engine's dependencies once (Puppeteer, Mediabunny)
+npm ci --prefix ~/.claude/skills/painterly-video/engine
+
+# optional: the study tool
+python3 -m venv ~/.claude/skills/painterly-video/.venv
+~/.claude/skills/painterly-video/.venv/bin/python -m pip install \
+  -r ~/.claude/skills/painterly-video/tools/requirements.txt
 ```
 
-If you already have an installation, preserve local changes before updating. For another agent that supports SKILL.md skills, place this folder in its skills directory and keep the engine, examples, references, and tools alongside the entry point.
+Start a new Claude Code session afterwards so the skill is listed. Check that everything works by rendering one still:
+
+```bash
+cd ~/.claude/skills/painterly-video
+node engine/bin/paint.mjs still examples/brush-chart.js --t 4
+```
+
+A PNG in `examples/stills/brush-chart/` means Chrome, WebGPU, and the engine are ready. If you already have an installation, preserve local changes before updating. For another agent that supports SKILL.md skills, place this folder in its skills directory and keep the engine, examples, references, and tools alongside the entry point.
 
 ### Give the agent an intention
 
