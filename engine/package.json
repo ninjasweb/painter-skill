@@ -1,0 +1,20 @@
+{
+  "name": "painter-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Stroke-based painterly video engine: WebGPU brush strokes, spectral pigment mixing, WebCodecs MP4 export.",
+  "bin": {
+    "paint": "bin/paint.mjs"
+  },
+  "scripts": {
+    "paint": "node bin/paint.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "mediabunny": "^1.65.2",
+    "puppeteer-core": "^25.17.0"
+  }
+}

@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>painter preview</title>
+<script type="importmap">{ "imports": { "painter": "/engine/index.js", "mediabunny": "/vendor/mediabunny.min.mjs" } }</script>
+<style>
+  html, body { margin: 0; background: #1b1a19; color: #cfc8bd; font: 13px/1.4 ui-monospace, Menlo, monospace; }
+  #wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px; }
+  canvas { max-width: 100%; max-height: 82vh; box-shadow: 0 6px 30px #000a; }
+  #ctl { display: flex; gap: 10px; align-items: center; width: min(1100px, 96vw); }
+  #t { flex: 1; } button { font: inherit; padding: 2px 10px; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+  <div id="ctl"><button id="play">play</button><input id="t" type="range" min="0" value="0"><span id="status">loading…</span></div>
+</div>
+<script type="module" src="/engine/host.js"></script>
+</body>
+</html>
