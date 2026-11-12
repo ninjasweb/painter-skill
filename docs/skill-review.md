@@ -1,47 +1,48 @@
-# Revisión de painterly-video
+# painterly-video review
 
-Revisión de publicación: 11 de noviembre de 2026. El objeto de esta revisión es la skill de este repositorio. Los trabajos externos se consultaron para seleccionar muestras recientes de su uso.
+Publication review: November 11–12, 2026. This review covers the skill in this repository. External working projects were consulted to select recent examples of its use.
 
-## Evaluación
+## Assessment
 
-La principal fortaleza es la conexión entre el criterio pictórico y una implementación ejecutable. `SKILL.md` establece composición, valores, paleta, orden de capas y revisión visual. Las referencias explican cómo traducirlos a funciones concretas; el motor entrega pinceladas, textura, reveal y movimiento. `study.py` aporta una manera reproducible de inspeccionar las decisiones.
+The main strength is the connection between artistic judgment and executable implementation. SKILL.md establishes composition, values, palette, layer order, and visual review. The references translate these decisions into concrete functions; the engine provides strokes, texture, reveal, and motion. The study tool offers a reproducible way to inspect those decisions.
 
-La estructura funciona bien como skill: un punto de entrada, documentación por tema, escenas iniciales y herramientas. Las referencias están separadas del flujo general y los ejemplos son ejecutables. La galería del README muestra trabajos recientes, mientras que `examples/` conserva las seis escenas originales de partida.
+The structure works well as a skill: one entry point, topic-specific references, starter scenes, and tools. Detailed references are separate from the main workflow, and examples are executable. The README gallery shows recent work while the examples directory retains the six original starter scenes.
 
-## Ajustes de publicación
+## Publication improvements
 
-| Hallazgo | Ajuste |
+| Finding | Change |
 | --- | --- |
-| Node ≥18 en la documentación y el paquete, pero Puppeteer 25.17.0 requiere ≥22.12.0. | Requisito alineado en `SKILL.md`, `package.json`, lockfile y README. |
-| Dependencias JavaScript sin lockfile en la skill. | Se incorporó el lockfile de la instalación del proyecto que coincide con las dependencias declaradas; instalación documentada con `npm ci`. |
-| Setup vinculado a una ubicación de instalación concreta. | Ruta configurable en el ejemplo de `SKILL.md`, con explicación de cómo resolverla. |
-| Dependencias de `study.py` implícitas. | `tools/requirements.txt` y ejemplo con entorno virtual. |
-| Imagen final y study de Sunset Lake anteriores al último MP4 corregido. | Poster extraído del último MP4 y study regenerado con la herramienta de esta skill. |
-| Faltaba documentación pública del conjunto. | README con instalación, proceso, galería reciente, studies, GIFs, MP4 y enlaces a las referencias. |
+| Documentation and package specified Node ≥18, but Puppeteer 25.17.0 requires ≥22.12.0. | Aligned the requirement in SKILL.md, package.json, the lockfile, and README. |
+| JavaScript dependencies had no lockfile in the skill. | Included the working project's lockfile, matching the declared dependencies, and documented npm ci. |
+| Setup assumed one installation location. | Used a configurable path in SKILL.md, with an explanation of how to resolve it. |
+| Study tool dependencies were implicit. | Added tools/requirements.txt and a virtual-environment example. |
+| Sunset Lake's poster and study predated its latest corrected MP4. | Extracted a poster from the final MP4 and regenerated its study with this skill's tool. |
+| Public documentation was missing. | Added installation, workflow, a recent gallery, studies, GIFs, MP4s, and reference links, in English. |
 
-Se conservaron los cambios ya presentes en el motor. No se sustituyó por una copia anterior del proyecto de ejemplos.
+Existing engine improvements were preserved. The engine was not replaced with an older copy from an example project.
 
-## Comprobaciones
+## Checks performed
 
-- Construcción de las seis escenas base en Node.js 22.22.0, sin renderizar: número de pinceladas positivo, datos finitos y mismas pinceladas al repetir la semilla.
-- Validación de estructura y frontmatter de la skill.
-- Ejecución de `study.py` sobre tres imágenes de la galería; inspección visual de posters y láminas.
-- Análisis de los tres MP4 comprimidos mediante el CLI de esta skill: resolución, duración, conteo de frames, cambios bruscos y segmentos negros.
-- Inspección de enlaces locales, estructura de publicación y exclusión de dependencias instaladas, entornos, archivos privados y motores duplicados.
+- Built all six starter scenes in Node.js 22.22.0 without rendering: positive stroke counts, finite data, and identical stroke data when repeating a seed.
+- Manually checked skill frontmatter and reference paths. The bundled validator was attempted but could not run because its Python environment lacked PyYAML.
+- Ran the study tool on three gallery images and visually inspected posters and study sheets.
+- Analyzed the three compressed MP4s with this skill's CLI: resolution, duration, frame counts, sudden changes, and black segments. All three returned ok: true.
+- Checked local links and publication contents, excluding installed dependencies, environments, private files, and duplicate engines.
+- Rendered the README through GitHub's Markdown API and checked its presentation and image loading in a browser.
 
-### Límites de esta comprobación
+### Verification limits
 
-La instalación nueva desde npm no pudo completarse en el entorno de publicación por un error de resolución de `registry.npmjs.org`. La verificación local utilizó dependencias ya instaladas en el proyecto, con versiones coincidentes con el lockfile.
+A fresh npm installation could not complete in the publication environment because registry.npmjs.org failed to resolve. Local checks used dependencies already installed in the working project, with versions matching the lockfile.
 
-El intento de render nuevo se detuvo al abrir el servidor local: el entorno restringido devolvió `listen EPERM` en `127.0.0.1`. Por tanto, esta publicación no afirma haber realizado un render completo nuevo en WebGPU ni validado la instalación desde cero. Los videos son entregables existentes, procesados y revisados para la documentación.
+A fresh render attempt stopped when opening the local server: the restricted environment returned listen EPERM on 127.0.0.1. This publication therefore does not claim a new end-to-end WebGPU render or a verified installation from scratch. Videos are existing deliverables, processed and checked for the documentation.
 
-## Límites funcionales y mejoras posibles
+## Functional limits and possible improvements
 
-- **Plataformas:** el flujo se desarrolló en macOS/Apple Silicon. Las rutas y flags para Linux/Windows necesitan pruebas de GPU y codecs en esos sistemas.
-- **Métrica focal:** el mapa combina contraste local y croma. Es una heurística visual, no un modelo validado de atención humana.
-- **Reglas artísticas:** horizontes fuera del centro, masas desiguales y límites de croma son criterios de partida. Una intención explícita de simetría, estilo gráfico o color intenso debe prevalecer.
-- **QA:** `ok` no evalúa composición. Los frames congelados se reportan, pero no hacen fallar el informe por sí solos. El CLI imprime el resultado y no establece un exit code distinto cuando `ok` es falso; una integración debe leer el JSON.
-- **Robustez del estudio:** imágenes uniformes pueden provocar divisiones por cero en el mapa focal; imágenes extremadamente panorámicas pueden dejar menos de 6000 píxeles para el muestreo sin reemplazo. Son casos pendientes de endurecer; no se observaron en las láminas publicadas.
-- **Servidor de preview:** está limitado a loopback y pensado para archivos locales de confianza. Antes de ofrecerlo como servicio compartido convendría restringir explícitamente las rutas servidas y endurecer el manejo de errores.
-- **Reproducibilidad:** una semilla fija estabiliza las pinceladas; cambios de motor, navegador, GPU o codificador pueden modificar los resultados. La galería conserva procedencia y versiones de medios, sin prometer igualdad de píxeles con el motor actual.
-- **Licencia:** se mantiene la licencia MIT del componente vendorizado `spectral.js`. El propietario todavía no ha indicado una licencia general para el resto del repositorio.
+- **Platforms:** development took place on macOS/Apple Silicon. Linux and Windows paths and flags still need GPU and codec testing on those systems.
+- **Focal metric:** the map combines local contrast and chroma. It is a visual heuristic, not a validated model of human attention.
+- **Artistic rules:** off-center horizons, unequal masses, and chroma limits are starting criteria. Explicit intentions such as symmetry, graphic style, or intense color should take precedence.
+- **QA:** the ok field does not evaluate composition. Frozen frames are reported but do not fail the report on their own. The CLI prints the result without setting a different exit code when ok is false; integrations need to inspect the JSON.
+- **Study robustness:** uniform images can cause division by zero in the focal map; extreme panoramas can leave fewer than 6,000 pixels for sampling without replacement. These cases remain candidates for hardening and were not encountered in the published sheets.
+- **Preview server:** bound to loopback and intended for trusted local files. A shared service would need explicit path restrictions and stronger error handling.
+- **Reproducibility:** a fixed seed stabilizes stroke generation; engine, browser, GPU, and encoder changes can affect output. Gallery provenance is preserved without promising pixel equality with the current engine.
+- **Licensing:** the vendored spectral.js component retains its MIT license. The owner has not yet specified a repository-wide license for the remaining code and media.
