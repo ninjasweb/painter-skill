@@ -11,3 +11,6 @@ __pycache__/
 examples/out/
 examples/stills/
 /study/
+
+# private working notes, not published
+docs/improvement-plan.md
