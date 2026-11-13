@@ -241,6 +241,7 @@ export class Painting {
       const min = Math.max(tot * 0.08, tot * Math.min(0.2, 1.0 / Math.max(end - start, 0.1))); tot = 0;
       for (const [ph, v] of w) { const nv = Math.max(v, min); w.set(ph, nv); tot += nv; }
     }
+    this.reveal = { start, end, strokeDur };
     let t = start; this.phaseTimes = {};
     for (const [ph, arr] of byPhase) {
       const span = (end - start) * w.get(ph) / tot;
@@ -257,6 +258,32 @@ export class Painting {
     return this;
   }
 
+  /** Scene time at which the picture is complete (end of the reveal, or 0 when there is none). Read it lazily,
+   *  inside p.camera / p.wind / p.grade, so motion is keyed to the living painting whatever the opening. */
+  get livingStart() { return this.reveal ? this.reveal.end + this.reveal.strokeDur : 0; }
+  /** Scene time of the last frame of the video (opening offset + duration). */
+  get endTime() { return (this.timeOffset || 0) + this.duration; }
+
+  /** Choose how the video opens. Called by the host after the scene is built (CLI flag --opening).
+   *   'finished'   (default) the picture is complete on the first frame; the video is the living painting.
+   *   'paint-on'   the whole painting process from the toned canvas, then the living painting.
+   *   'final-pass' opens on the nearly finished picture and paints only the last phase (details, highlights),
+   *                showing at least the last 1.5 s of brushwork.
+   *  Implemented as a time offset (scene time = video time + offset), so a scene written for the paint-on reveal
+   *  needs no change: its camera, wind, grade and dynamic layers run exactly as they would after the reveal. */
+  open(mode = 'finished') {
+    if (!Painting.OPENINGS.includes(mode)) throw new Error(`Unknown opening "${mode}". Use one of: ${Painting.OPENINGS.join(', ')}.`);
+    const r = this.reveal; let off = 0;
+    if (r && mode === 'finished') off = this.livingStart;
+    else if (r && mode === 'final-pass') {
+      const spans = Object.values(this.phaseTimes || {});
+      const s = Math.min(spans.length ? spans[spans.length - 1][0] : r.start, r.end - 1.5);
+      off = Math.max(0, s - 0.5);                         // a half-second look at the picture before the brush returns
+    }
+    this.opening = mode; this.timeOffset = off;
+    return off;
+  }
+
   /** Everything the renderer needs for time t (seconds). Pure function of t. */
   frame(t) {
     for (const l of this.layers) if (l.dynamic) { l.count = 0; l.rand = rng(hashStr(l.name) ^ this.seed); l.dynamic(t, l); l.version++; }
@@ -266,5 +293,7 @@ export class Painting {
 
   get strokeCount() { return this.layers.reduce((n, l) => n + l.count, 0); }
 }
+
+Painting.OPENINGS = ['finished', 'paint-on', 'final-pass'];
 
 export { TAU };

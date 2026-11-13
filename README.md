@@ -35,7 +35,7 @@ The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This r
 | :--- | :--- |
 | **Where the eye goes** | Composition, three value masses, and a deliberate focal point. |
 | **How the paint feels** | Strokes with paint load, thickness, softness, mixing, and direction. |
-| **How the image appears** | A *paint-on reveal* organized into painting phases. |
+| **How the image appears** | Three openings, chosen at render time: *finished artwork* (default), the full *painting process*, or a *final pass* over the last details. |
 | **How it comes alive** | Wind, clouds, water, dynamic subjects, and a parallax camera. |
 | **How it is evaluated** | Stills, study sheets, timeline contact sheets, and MP4 analysis. |
 
@@ -64,12 +64,20 @@ export default function ({ aspect, seed }) {
   paintHills(p.layer('hill', { depth: 0.6 }), { top: ridge({ y: 0.68, amp: 0.05, freq: 2, seed }), color: () => hillCol });
   paintGrass(p.layer('grass', { depth: 1 }), { bounds: [0, 0.8, aspect, 1.05], dark: hillCol, light: tone(hillCol, 0.5), blade: 0.05 });
 
-  p.timelapse({ start: 0.3, end: 10 });                               // painted on in 10 s …
-  p.camera = (t) => ({ zoom: key(t, [[10, 1], [16, 1.07]], ease.inOut) });   // … then it comes alive
-  p.wind = (t) => ({ strength: key(t, [[0, 0], [10, 0.15], [12, 1]]) });
+  p.timelapse({ start: 0.3, end: 10 });                               // the painting process …
+  p.camera = (t) => ({ zoom: key(t, [[p.livingStart, 1], [p.endTime, 1.07]], ease.inOut) });   // … then it comes alive
+  p.wind = (t) => ({ strength: key(t, [[0, 0], [p.livingStart, 0.15], [p.livingStart + 2, 1]]) });
   return p;
 }
 ```
+
+The same scene renders in any format, length, and opening, chosen by flags; before painting, the agent asks for any of these the request leaves out:
+
+| Option | Flag | Default |
+| :--- | :--- | :--- |
+| Format | `--size 1920x1080` · `1080x1920` · `1080x1080` · `3840x2160` | 16:9 |
+| Duration | `--duration 15` | 15 s |
+| Opening | `--opening finished` (complete on the first frame) · `paint-on` (painted stroke by stroke) · `final-pass` (only the last details are painted) | `finished` |
 
 Ready-made painters cover skies, sun and moon, cumulus and storm clouds, rays, hills, mountains, water, trees, firs, pines, grass, rocks, houses, boats, figures, and smoke; anything else is built from `layer.stroke`, `layer.scatter`, and `layer.path`. See the [Engine API](references/api.md).
 
@@ -219,11 +227,15 @@ From the repository root:
 
 ```bash
 # Twelve moments from the process, plus a contact sheet
-node engine/bin/paint.mjs still examples/sunset-river.js --n 12 --sheet
+node engine/bin/paint.mjs still examples/sunset-river.js --n 12 --sheet --opening paint-on
 
-# Shareable MP4: H.264, yuv420p, bt709
+# Shareable MP4: H.264, yuv420p, bt709 — finished artwork, 15 s
 node engine/bin/paint.mjs render examples/sunset-river.js \
-  --size 1280x720 --fps 30 --compat
+  --size 1280x720 --duration 15 --compat
+
+# The same scene, showing the painting process
+node engine/bin/paint.mjs render examples/sunset-river.js \
+  --size 1280x720 --opening paint-on --compat --out examples/out/sunset-river-process.mp4
 
 # Automated report: inspect the JSON "ok" field
 node engine/bin/paint.mjs qa examples/out/sunset-river.mp4

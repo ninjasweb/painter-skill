@@ -2,6 +2,27 @@
 
 A frame is a pure function of `t`: the same `t` always gives the same pixels, so any instant can be previewed, and stills match the video.
 
+## 0. Openings
+
+A scene describes one timeline: the painting process (`p.timelapse`), then the living painting. The render flag `--opening` picks where the video starts on that timeline, so one scene serves every opening:
+
+| Opening | Flag | First frame | Use for |
+|---|---|---|---|
+| **Finished artwork** (default) | `--opening finished` | The complete painting; the whole video is the living painting | Backgrounds, story shots, music and ambient videos |
+| **Painting process** | `--opening paint-on` | The toned canvas; the picture is painted stroke by stroke, then comes alive | Speed-paint and process videos |
+| **Final pass** | `--opening final-pass` | The nearly finished picture; only the last phase (details, highlights) is painted | Intros that show the hand without a long reveal |
+
+How it works: the engine shifts time (scene time = video time + offset; offset = `p.livingStart` for *finished*, the start of the last phase minus 0.5 s for *final pass*). To keep motion right in every opening and for any `--duration`, key it to the painting's own marks, read lazily inside the functions:
+
+- `p.livingStart` — scene time when the picture is complete (end of the reveal; 0 without one).
+- `p.endTime` — scene time of the video's last frame.
+
+```js
+p.camera = (t) => ({ zoom: key(t, [[p.livingStart, 1], [p.endTime, 1.07]], ease.inOut) });   // push-in over the whole living part
+p.wind   = (t) => ({ strength: key(t, [[0, 0], [p.livingStart, 0.15], [p.livingStart + 2, 1]]) });
+```
+With hard-coded times (`[[10, 1], [16, 1.07]]`, as in older scenes) the openings still work, but a longer `--duration` holds the camera still once the last key has passed. For a seamless loop (`finished` only), make every motion periodic over the video length (`Math.sin(TAU * (t - p.livingStart) / p.duration)`) and keep drift slow enough that nothing visibly leaves the frame.
+
 ## 1. Paint-on reveal (`p.timelapse`)
 
 Every static stroke gets a start time in the order it was created, grouped by `p.phase()`. A stroke is drawn from its start to its end over `strokeDur` seconds.
@@ -65,8 +86,8 @@ Dark toned ground (value ≈ 0.25, blue-violet); sky 0.18–0.32; the lightest t
 |---|---|
 | 16 s loop-ish short | 0.3 s canvas · 9.5 s reveal · 6 s living with push-in |
 | 30–60 s speed-paint | 80 % reveal with explicit `weights`, 20 % living; end on a 2 s hold |
-| Ambient background (minutes) | no reveal (`timelapse` not called); slow drift, wind and `grade`; keep motion periodic so the end matches the start |
-| Story shot | reveal only the last layers (give earlier phases weight ≈ 0.01), or start already painted and animate camera + dynamic layers |
+| Ambient background (minutes) | `--opening finished --duration 120`; slow drift, wind and `grade`; keep motion periodic so the end matches the start |
+| Story shot | `--opening finished` (camera + dynamic layers) or `--opening final-pass` |
 
 For several shots, make one scene module per shot, render each, and join with ffmpeg (`concat` demuxer) — shots stay independent and cheap to re-render.
 

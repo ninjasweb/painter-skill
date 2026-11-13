@@ -19,11 +19,13 @@ No frame is a screenshot: pixels are copied from the render texture (`copyTextur
 node bin/paint.mjs still   scene.js [--t 2,5,9 | --n 12] [--size 1280x720] [--out dir] [--sheet]
 node bin/paint.mjs render  scene.js [--out video.mp4] [--size 1920x1080] [--fps 30] [--codec avc|hevc|av1|vp9]
                                     [--bitrate 16e6] [--start s] [--end s] [--audio file] [--compat] [--seed n]
-                                    [--params '{"mood":"dawn"}'] [--duration s]
+                                    [--params '{"mood":"dawn"}'] [--duration s] [--opening finished|paint-on|final-pass]
 node bin/paint.mjs preview scene.js [--port 4173]     # scrub and play in your own Chrome
 node bin/paint.mjs info    scene.js                   # strokes per layer, phase times
 node bin/paint.mjs qa      video.mp4 [--still frame.png --t 5]
 ```
+- `--opening` (still, render, preview, info) decides how the video opens — `finished` (default): the painting is complete on the first frame; `paint-on`: the whole painting process; `final-pass`: only the last phase is painted. Times given to `--t`, `--start`, `--end` and the phase times printed by `info` are all in **video** seconds of the chosen opening.
+- `--duration` is the length of the video. Without it the video runs to the end of the scene's timeline (for `finished`: `p.duration` minus the reveal).
 - `--size` sets the aspect: `1920x1080`, `1080x1920`, `1080x1080`, `3840x2160`. Scenes are resolution-independent.
 - `--params` JSON is spread into the scene function's argument (variants: mood, season, seed-dependent layouts).
 - `--compat` re-encodes with x264 to limited-range `yuv420p` bt709 (CRF 15; change with `--crf n`) — use it for anything that will be uploaded or edited. Without it the hardware-encoded stream is kept as is (full-range `yuvj420p`), fine for review.
@@ -32,7 +34,7 @@ node bin/paint.mjs qa      video.mp4 [--still frame.png --t 5]
 ## Working loop
 
 1. `still --t <end>` at 1280×720 or 1600×900 while painting (1–3 s per try). **Read the command output before opening the PNG** — on an error the old PNG is still there.
-2. `still --n 12 --sheet` → one contact sheet of the whole timeline, written to `<out dir>/sheet.jpg` (blank canvas, each phase, living section).
+2. `still --n 12 --sheet --opening paint-on` → one contact sheet of the whole timeline, written to `<out dir>/sheet.jpg` (blank canvas, each phase, living section).
 3. `render --start 10 --end 13 --size 960x540` to judge motion cheaply, then the full render with `--compat`.
 4. `qa` on the result; then extract frames from the MP4 itself and look at them:
    `ffmpeg -i out.mp4 -vf "fps=1/2,scale=480:-2,tile=4x2" -frames:v 1 sheet.jpg`

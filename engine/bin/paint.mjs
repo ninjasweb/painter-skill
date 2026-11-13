@@ -8,6 +8,8 @@
 //   paint info    <scene.js>                    stroke counts, layers, phase times
 //   paint qa      <video.mp4> [--still t.png --t 5]   probe + flicker/black/freeze check (+ colour match vs a still)
 //
+//   --opening finished|paint-on|final-pass   (still, render, preview, info) how the video opens; default finished:
+//            the picture is complete on the first frame. --duration s = length of the video.
 //   render --compat   re-encode with x264 to limited-range yuv420p/bt709 (maximum player compatibility)
 //
 // Requires Google Chrome (or CHROME_PATH) and, for --audio/--sheet, ffmpeg.
@@ -79,7 +81,7 @@ async function open(sceneFile, o, w, h) {
   page.on('console', (m) => { const t = m.text(); if (/different format than is preferred/.test(t)) return; if (m.type() === 'error' || /WebGPU|error/i.test(t)) console.error('[page]', t); });
   page.on('pageerror', (e) => console.error('[page error]', e.message));
   const qs = new URLSearchParams({ scene: path.basename(sceneFile), w, h });
-  for (const k of ['fps', 'seed', 'duration', 'params']) if (o[k] !== undefined) qs.set(k, o[k]);
+  for (const k of ['fps', 'seed', 'duration', 'params', 'opening']) if (o[k] !== undefined) qs.set(k, o[k]);
   await page.goto(`http://127.0.0.1:${srv.address().port}/?${qs}`);
   try { await page.evaluate(() => window.__ready.then(() => true)); }
   catch (e) { const err = await page.evaluate(() => window.__error).catch(() => null); await browser.close(); srv.close(); throw new Error('Scene failed to build:\n' + (err || e.message)); }
@@ -121,7 +123,7 @@ async function render(o) {
   const fd = fs.openSync(raw, 'w');
   await s.page.exposeFunction('__chunk', (b, pos) => { const buf = Buffer.from(b, 'base64'); fs.writeSync(fd, buf, 0, buf.length, pos); });
   await s.page.exposeFunction('__progress', (i, n, sec) => process.stderr.write(`\r  frame ${i}/${n}  ${(i / Math.max(sec, 0.01)).toFixed(1)} fps   `));
-  console.error(`rendering ${path.basename(scene)} ${w}x${h}@${s.info.fps} · ${s.info.duration}s · ${s.info.strokes.toLocaleString()} strokes`);
+  console.error(`rendering ${path.basename(scene)} ${w}x${h}@${s.info.fps} · ${s.info.duration}s · opening ${s.info.opening} · ${s.info.strokes.toLocaleString()} strokes`);
   const opt = { codec: o.codec || 'avc', bitrate: Number(o.bitrate || 16e6) };
   if (o.start !== undefined) opt.start = Number(o.start); if (o.end !== undefined) opt.end = Number(o.end);
   const r = await s.page.evaluate((opt) => window.__paint.render(opt), opt);
@@ -142,7 +144,7 @@ async function render(o) {
 async function preview(o) {
   const scene = path.resolve(o._[1]);
   const srv = await serve(scene, Number(o.port || 4173));
-  console.log(`preview: http://127.0.0.1:${srv.address().port}/?scene=${path.basename(scene)}&h=720   (open in Chrome; reload after edits; Ctrl+C to stop)`);
+  console.log(`preview: http://127.0.0.1:${srv.address().port}/?scene=${path.basename(scene)}&h=720&opening=${o.opening || 'finished'}   (open in Chrome; reload after edits; Ctrl+C to stop)`);
 }
 
 async function info(o) {

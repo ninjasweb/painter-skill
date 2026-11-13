@@ -16,7 +16,8 @@ p.duration = 16; p.fps = 30;
 | `p.dynamic(name, opts, (t, layer) => …)` | Layer rebuilt every frame — for things that move along a path. Keep it small (tens of strokes). |
 | `p.phase(name)` | Tags following strokes with a stage name for `timelapse` pacing. |
 | `p.sample(x, y)` / `p.valueAt(x, y)` | Colour / value already painted there (a low-res memory of the canvas). Use it to react: reflections, "a little lighter than what is under", wet pickup. |
-| `p.timelapse({ start, end, weights, strokeDur, easeIn })` | Schedules every static stroke for the paint-on reveal. Call once, after all painting; afterwards `p.phaseTimes` = `{ phaseName: [startSec, endSec] }`. |
+| `p.timelapse({ start, end, weights, strokeDur, easeIn })` | Schedules every static stroke for the paint-on reveal. Call once, after all painting; afterwards `p.phaseTimes` = `{ phaseName: [startSec, endSec] }` in scene time. Shown with `--opening paint-on` / `final-pass`; `finished` (default) starts after it. |
+| `p.livingStart` · `p.endTime` | Scene time when the picture is complete, and of the video's last frame. Read them inside `p.camera`/`p.wind`/`p.grade` so motion fits every `--opening` and `--duration` (`references/animation.md` §0). |
 | `p.camera = (t) => ({ x, y, zoom })` | Camera centre (default `A/2, 0.5`) and zoom. |
 | `p.parallax = { far, zoomFar }` | How much depth-0 layers follow the camera (default 0.25 pan, 0.55 zoom). |
 | `p.wind = (t) => ({ strength, speed })` | Scales all `sway`. |

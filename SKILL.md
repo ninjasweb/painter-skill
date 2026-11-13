@@ -21,14 +21,22 @@ Replace `/path/to/painterly-video` with the folder containing this `SKILL.md` (f
 
 ## Workflow — do not skip the looking steps
 
-1. **Brief.** Subject, mood, time of day, format (16:9, 9:16, 1:1 — any `--size`), duration, and how the time is split: paint-on reveal, living painting, or both (default: ~60 % reveal, ~40 % living).
+1. **Brief — ask before painting.** Subject, mood and time of day, plus the three delivery options below. Ask the user for every option the request does not state, in one message, with the choices and the default. If you cannot ask (non-interactive run), use the defaults and state them in your report.
+
+   | Option | Choices | Default | Render flag |
+   |---|---|---|---|
+   | Format | 16:9 landscape 1920×1080 · 9:16 vertical 1080×1920 · 1:1 square 1080×1080 · 4K 3840×2160 | 16:9 | `--size` |
+   | Duration | seconds of video | 15 s | `--duration` |
+   | Opening | **Finished artwork**: the painting is complete on the first frame and the whole video is the living painting · **Painting process**: painted stroke by stroke from the toned canvas, then it comes alive · **Final pass**: opens on the nearly finished picture and paints only the last details | Finished artwork | `--opening finished \| paint-on \| final-pass` |
+
+   Always write the scene with `p.timelapse()` and key motion to `p.livingStart`/`p.endTime` (skeleton below): the same scene then renders in any opening, size and duration, chosen only by flags.
 2. **Study a reference when one exists** (`tools/study.py`, see `references/composition.md`). It reports value masses, key, chroma, palette and focal point — copy the *structure*, never the picture.
 3. **Compose before colour.** Write the composition as a comment at the top of the scene: horizon height (never the middle), focal point (on a third, where the strongest value contrast and highest chroma go), the lead-in, what frames it, and a **value plan** — one value (0–1) for each big shape, in three unequal masses. `references/composition.md`.
 4. **Palette from pigments, placed on the value plan.** `tone(mix({ ultramarine: 1, transYellowOxide: 1 }), 0.42)`. Keep chroma low everywhere except the focal accent (masters: mean OKLab chroma 0.02–0.06, high-chroma area under ~8 %).
 5. **Paint back to front** with the subject painters (`paintSky`, `paintCumulus`, `paintHills`, `paintMountains`, `paintWater`, `paintTreeline`, `paintPine`, `paintFir`, `paintTree`, `paintGrass`, `paintRocks`, `paintHouse`, `paintGlow`, `paintMoon`, `walker`, `boat`, `smoke`…) and raw `layer.scatter/stroke/path` for anything else. One `p.phase('name')` per stage, layers created far → near. `references/api.md`.
 6. **Look, critique, adjust — at least two rounds.** Render a still, open the PNG, and judge it like a painting: squint (do the three value masses read?), is the focal point where planned, is anything equally spaced / equally sized / equally saturated, does any mark look mechanical? Fix the *cause* in code. Run `study.py` on your own still and compare with the plan. This loop is the skill; first renders are never right.
-7. **Time.** `p.timelapse()` for the reveal, then motion: `sway`, `drift`, `shimmer`, `p.wind`, `p.camera` (parallax by layer depth), `p.dynamic` for things that travel. `references/animation.md`.
-8. **Contact sheet, then render.** `still --n 12 --sheet` → check every stage of the timeline; then `render` → `qa`. `references/pipeline.md`.
+7. **Time.** `p.timelapse()` for the reveal (used by the *paint-on* and *final-pass* openings, skipped over by *finished*), then motion: `sway`, `drift`, `shimmer`, `p.wind`, `p.camera` (parallax by layer depth), `p.dynamic` for things that travel. `references/animation.md`.
+8. **Contact sheet, then render.** `still --n 12 --sheet --opening paint-on` → check every stage of the painting (do this even when delivering *finished*: it shows each phase); then `render --size … --duration … --opening …` with the brief's choices → `qa`. `references/pipeline.md`.
 9. **Report honestly**: what was checked automatically, what you looked at, what you did not.
 
 ## Scene skeleton
@@ -52,9 +60,10 @@ export default function ({ aspect, seed }) {            // aspect = width / heig
   paintHills(p.layer('hill', { depth: 0.6 }), { top: hill, color: (x, y, k) => hillCol, size: 0.03 });
   paintGrass(p.layer('grass', { depth: 1 }), { bounds: [0, 0.8, A, 1.05], dark: hillCol, light: tone(hillCol, 0.5), blade: 0.05 });
 
-  p.timelapse({ start: 0.3, end: 10 });                 // picture finished at 10 s
-  p.camera = (t) => ({ zoom: key(t, [[10, 1], [16, 1.07]], ease.inOut) });
-  p.wind = (t) => ({ strength: key(t, [[0, 0], [10, 0.15], [12, 1]]) });
+  p.timelapse({ start: 0.3, end: 10 });                 // the painting process (shown with --opening paint-on / final-pass)
+  // key motion to p.livingStart (picture complete) and p.endTime (last frame): correct for every opening and --duration
+  p.camera = (t) => ({ zoom: key(t, [[p.livingStart, 1], [p.endTime, 1.07]], ease.inOut) });
+  p.wind = (t) => ({ strength: key(t, [[0, 0], [p.livingStart, 0.15], [p.livingStart + 2, 1]]) });
   return p;
 }
 ```

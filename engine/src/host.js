@@ -14,7 +14,10 @@ async function boot() {
   let params = {}; try { params = JSON.parse(q.get('params') || '{}'); } catch { /* ignore */ }
   const t0 = performance.now();
   const painting = await mod.default({ aspect: width / height, seed: num('seed', meta.seed ?? 1), ...params });
-  if (q.has('duration')) painting.duration = num('duration');
+  // opening: 'finished' (default) · 'paint-on' · 'final-pass'. Video time 0 = scene time painting.timeOffset.
+  const off = painting.open(q.get('opening') || 'finished');
+  // --duration is the length of the video; without it, the video runs to the end of the scene's own timeline
+  painting.duration = q.has('duration') ? num('duration') : Math.max(3, +(painting.duration - off).toFixed(3));
   const buildMs = performance.now() - t0;
   const canvas = document.getElementById('c');
   const renderer = await Renderer.create(canvas, width, height);
@@ -22,7 +25,10 @@ async function boot() {
 
   const api = {
     info: { width, height, fps, duration: painting.duration, strokes: painting.strokeCount, buildMs: Math.round(buildMs),
-      layers: painting.layers.map((l) => ({ name: l.name, strokes: l.count, depth: l.depth, dynamic: !!l.dynamic })), phases: painting.phaseTimes || null },
+      opening: painting.opening, timeOffset: +off.toFixed(3),
+      layers: painting.layers.map((l) => ({ name: l.name, strokes: l.count, depth: l.depth, dynamic: !!l.dynamic })),
+      // phase times in VIDEO seconds (negative = already painted before the first frame)
+      phases: painting.phaseTimes ? Object.fromEntries(Object.entries(painting.phaseTimes).map(([k, [a, b]]) => [k, [+(a - off).toFixed(3), +(b - off).toFixed(3)]])) : null },
     painting, renderer,
     /** PNG (base64) of the frame at time t. */
     async still(t) {

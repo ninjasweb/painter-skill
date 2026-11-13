@@ -73,6 +73,7 @@ export class Renderer {
 
   /** Render the painting at time t. opts.boil: hand-made jitter amount (0 = rock steady), opts.boilFps. */
   render(painting, t, opts = {}) {
+    t += painting.timeOffset || 0;                        // video time → scene time (see Painting.open)
     const d = this.device, f = painting.frame(t), k = painting.look;
     const la = k.lightAngle, lz = 0.62;
     const u = new Float32Array([
