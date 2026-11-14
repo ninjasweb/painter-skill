@@ -86,7 +86,13 @@ async function open(sceneFile, o, w, h) {
   try { await page.evaluate(() => window.__ready.then(() => true)); }
   catch (e) { const err = await page.evaluate(() => window.__error).catch(() => null); await browser.close(); srv.close(); throw new Error('Scene failed to build:\n' + (err || e.message)); }
   const info = await page.evaluate(() => window.__paint.info);
-  return { page, browser, srv, info, close: async () => { await browser.close(); srv.close(); } };
+  // under memory pressure Chrome can fail to exit after the work is written: wait 15 s, then end it
+  const close = async () => {
+    await Promise.race([browser.close().catch(() => {}), new Promise((r) => setTimeout(r, 15000).unref())]);
+    try { browser.process()?.kill('SIGKILL'); } catch { /* already gone */ }
+    srv.close(); srv.closeAllConnections?.();
+  };
+  return { page, browser, srv, info, close };
 }
 
 const size = (o, d) => (o.size || d).split('x').map(Number);

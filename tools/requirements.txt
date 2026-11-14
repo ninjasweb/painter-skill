@@ -1,3 +1,5 @@
 numpy
 Pillow
 scikit-learn
+mediapipe>=0.10.14   # tools/person.py (pose + hair/skin/clothes masks)
+scipy

@@ -111,6 +111,83 @@ Shapes: `ridge({ y, amp, freq, seed, rough, slope }) → (x) → y` (rolling hil
 
 Typical sizes (fractions of height): sky brush 0.06–0.08 · cloud dabs 0.022–0.035 · far treeline 0.009–0.016 · hill strokes 0.02–0.03 · grass blade 0.045–0.06 · hero-tree leaf dab ≈ height × 0.035.
 
+## Sea
+
+`seaSource(p, { colors, sky, swell, wavelength, chop, storm, dir, giant, sun, solids, time, seed })` → a colour function of a modelled sea seen from `p.view`, to paint with `paintFrom` (mask with `sea(x, y).sky`). `pierSolids(p, { X0, D0, length, angle, width, deck, spacing })` → `{ solids, at(), ground }`. `SEA_COLORS.storm | .sunset | .moon`. Older stroke-built helpers: `paintSea`, `paintSeaBase`, `paintPier`. Guide: `references/sea.md`.
+
+## Perspective
+
+`setView(p, { horizon, eye, fov })` declares the camera; `stand(p, { x, feet, meters })` sizes anything standing at a ground point; `rowToward`, `groundPoint`, `distanceAt`, `scaleAt`, `hazeColor`, `perspectiveGuides`. Rules and workflow: `references/perspective.md`.
+
+## People
+
+`paintFigure(layer, { x, base, height, pose: POSES.contrapposto('r'), body: 'female', turn, back, skin, outfit, hair, light, ambient, detail, stages, t0, dur, wind, time })` paints a person in construction order (gesture → blobs → form → skin → accents). Use it in a static layer, or inside `p.dynamic` with a pose that changes with `t` (breathing, `POSES.walk(t * 5)`). Poses: `stand`, `contrapposto`, `handOnHip`, `armsUp`, `reach`, `walk` (profile), `sit` (profile). Bodies: `female`, `male`, `heroic`, `child`. Helpers: `skeleton()` (joint positions), `skinPalette()`, `clothPalette()`. Full guide and options: `references/figures.md`; example: `examples/figure-chart.js`.
+
+**Real people** (preferred for any figure that carries the picture): `python tools/person.py photo.jpg` reads the pose and the hair/skin/clothes masks; then `const person = await loadPerson('photo.jpg')` and `paintPerson(layer, person, { x, base, height, harmonize, detail, flip })` paints that person (body inside the silhouette, hair as locks with flyaways). Omit `x` to paint the person in place in the same photo. For a small figure with a real pose: `paintFigure(layer, { joints: poseJoints(person.info, { x, base, height, body }), … })`.
+
+## Painting from a reference
+
+When the user supplies a photo or study, or when the drawing must be right (real mountains, a real place), paint from it instead of composing with subject painters. The source gives the drawing and the values; the painter decides how it is painted.
+
+```js
+import { Painting, loadReference, paintFrom, key, ease } from 'painter';
+export const meta = { duration: 14, fps: 30 };
+
+export default async function ({ aspect, seed }) {          // async: the image is loaded first
+  const p = new Painting({ aspect, seed, ground: '#b9a184' });
+  p.duration = 14;
+  const src = await loadReference('mountain-lake.jpg');      // next to the scene file
+  const rep = paintFrom(p.layer('painting', { depth: 0.5 }), src, { focal: [1.33, 0.42] });
+  p.timelapse({ start: 0.3, end: 9 });
+  p.camera = (t) => ({ zoom: key(t, [[p.livingStart, 1], [p.endTime, 1.05]], ease.inOut) });
+  return p;
+}
+```
+
+| Call | Notes |
+|---|---|
+| `await loadReference(file, { maxSize })` | Loads an image placed next to the scene file (the CLI serves only that folder). `maxSize` caps the longest side (1600). |
+| `paintFrom(layer, source, options)` | `source` is a `loadReference()` result, or a function `(x, y) → colour` (an engine-generated study). Returns a report (below). |
+
+How it paints, in order (each step is one `p.phase()`, so a paint-on reveal shows a real painting session):
+
+1. **rub-in** — a thin, opaque wash of the value masses with a broad brush, so no bare canvas shows between later strokes.
+2. **block-in** — the coarsest brush on a simplified source whose lightness is snapped to `masses` values (squint, then commit).
+3. **masses**, **form**, **detail** — smaller brushes, each placed only where the canvas still differs from the source by more than `threshold`, starting at the worst spot and growing along the form (the source's structure tensor) while the colour still belongs to the stroke. **form** and **detail** are allowed only inside the detail budget around the focal point, where the threshold is also halved, edges are harder and the paint thicker; away from it the picture stays broad, with softer edges and thin paint.
+
+Options (sizes are fractions of the canvas height):
+
+| Option | Default | Effect |
+|---|---|---|
+| `focal` | `'auto'` | `[x, y]` in scene units. `'auto'` takes the strongest contrast × chroma, like `study.py`; check it in the report and set it yourself when it lands on the wrong thing (often a bright sky glow). |
+| `focalRadius` | 0.32 | Reach of the detail budget. Smaller = more of the picture stays broad. |
+| `detail` | — | `(x, y) → 0…1` custom budget map; replaces `focal`/`focalRadius` (e.g. two centres of interest, or detail along a path). |
+| `sizes` | `[0.04, 0.02, 0.01, 0.005]` | Brush widths coarse → fine. Add a finer last size (0.003) for crisp peaks or architecture at the focal point; drop the last one for a looser sketch. |
+| `masses` | 4 | Value masses of the block-in (2–6; 0 = no simplification). |
+| `threshold` | 0.04 | OKLab difference a cell must show to earn a stroke. Higher = fewer, broader strokes (0.06 sketch); lower = closer to the photo (0.03). |
+| `length` | `[8, 7, 5, 3.5]` | Longest stroke per level, in brush widths. |
+| `flow` | 0 | Stroke angle where the source has no clear direction (smooth sky, still water): radians or `(x, y) → radians`. |
+| `curve` | 0.55 | 0 straight strokes … 1 follow every turn of the form. |
+| `values` | — | `(L) → L` remap of lightness before painting: push the key, compress the range, or hit a value plan. |
+| `chroma` | 0.9 | Multiplier on the source's chroma. Photos are more saturated than paintings; 0.7–0.9 reads as paint. |
+| `color` | — | `(rgb, x, y, info) → rgb` last word on each colour (warm the lights, earth the greens). `info.level` is −1 for the rub-in, then 0, 1, 2… |
+| `thick` | 0.5 | Impasto on lights at the focal point; thin paint elsewhere. |
+| `brushes` | filbert, filbert, filbert, round | Brush per level. |
+| `mask` | — | `(x, y) → 0…1`: where this layer may start strokes (strokes can run a little past it). Each call models only its own strokes, so the coarse passes of a nearer layer spill over a farther layer's edge: use masks for separate subjects, not to split one continuous picture into depth layers. One layer at `depth: 0.5` with a gentle push-in (≤ 5 %) is the safe default. |
+| `crop` | `[0.5, 0.5]` | Centre of the crop in the source (0…1). The source always covers the canvas ('cover'), plus 5 % overscan for camera moves. |
+| `each` | — | `(strokeSpec, info) → edit or false`: add `sway` to grass, `shimmer` to water (`info.y`, `info.L`), or drop strokes. |
+| `phases` | true | One `p.phase()` per step; set false to keep your own phase. |
+| `rubIn` | true | Set false when a layer below already covers the area. |
+| `vignette` | true | Pre-compensate the finish pass's vignette so the values match the source. |
+| `place` | — | `{ u: [u0, v0, u1, v1], to: [x0, y0, x1, y1] }`: put a region of the source (0…1) into a rectangle of the scene instead of covering the canvas. |
+| `maskImage`, `maskChannel`, `maskFn` | — | A silhouette from an image (e.g. the `.mask.png` of `tools/person.py`): strokes start inside, stop at the edge, and big brushes do not cross it. |
+| `tolerance` | 1 | How far a stroke's colour may drift before it stops; 2–2.5 lets hair locks run through small colour changes. |
+| `flyaways` | 0 | With a mask: number of single hairs leaving the silhouette along the flow. |
+
+**Report** (also printed by `paint info` / `still` as `reference`): `focal`, `strokes` per level, `source.masses` (dark/mid/light share of the source, measured like `study.py`) and `model.masses` (the same for the painting as the algorithm models it). If the source's masses are not the ones you want, change them with `values` — the painting follows the source.
+
+What to expect: the drawing and value masses come out right by construction. Measured on three photos (mountain lake, lake at sunset, forest path) with each photo's own value thresholds, the painting's dark/mid/light masses land within 1–5 points of the photo's. The engine's vignette is compensated (`vignette: false` to let it darken the corners). Fine detail survives only inside the budget — that is the intent. Thin, high-contrast details outside it (a far mast, a lone branch) are lost; widen the budget there with `detail`. Expect 6–10 k strokes at the defaults and a few seconds of build time.
+
 ## Writing a new subject painter
 
 Follow the same recipe every existing painter uses (read `engine/src/paint/*.js` — each is 20–60 lines):

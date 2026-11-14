@@ -17,54 +17,104 @@ cd painter-engine
 npm ci
 node bin/paint.mjs still ../path/to/scene.js --t 8          # → PNG next to the scene (stills/<scene>/)
 ```
-Replace `/path/to/painterly-video` with the folder containing this `SKILL.md` (for example `~/.claude/skills/painterly-video`). Needs Node ≥ 22.12, Google Chrome with WebGPU (or `CHROME_PATH`), ffmpeg and ffprobe. Reference studies additionally need Python with `tools/requirements.txt`. No build step or rendering API keys; rendering runs on local hardware. Start a new scene by copying the closest file in `examples/` (`sunset-river.js` sky/clouds/water · `lone-pine.js` vertical, single subject · `lake-path.js` trees/depth/path · `sunset-study.js` dramatic sky of dark cloud masses with rim light (a study of a demonstration's structure) · `mountain-hamlet.js` mountains, cabin, rocks, walking figure, smoke · `brush-chart.js` brushes and mixes).
+
+Replace `/path/to/painterly-video` with the folder containing this `SKILL.md` (for example `~/.claude/skills/painterly-video`). Needs Node ≥ 22.12, Google Chrome with WebGPU (or `CHROME_PATH`), ffmpeg and ffprobe. Reference studies additionally need Python with `tools/requirements.txt`. No build step or rendering API keys; rendering runs on local hardware. Start a new scene by copying the closest file in `examples/` (`sunset-river.js` sky/clouds/water · `lone-pine.js` vertical, single subject · `lake-path.js` trees/depth/path · `sunset-study.js` dramatic sky of dark cloud masses with rim light (a study of a demonstration's structure) · `mountain-hamlet.js` mountains, cabin, rocks, walking figure, smoke · `from-photo.js` painted from a photo with `paintFrom` · `figure-chart.js` people: construction stages and poses · `people-landscape.js` real people placed with perspective · `sea-pier.js` a storm after Aivazovsky · `brush-chart.js` brushes and mixes).
 
 ## Workflow — do not skip the looking steps
 
 1. **Brief — ask before painting.** Subject, mood and time of day, plus the three delivery options below. Ask the user for every option the request does not state, in one message, with the choices and the default. If you cannot ask (non-interactive run), use the defaults and state them in your report.
 
-   | Option | Choices | Default | Render flag |
-   |---|---|---|---|
-   | Format | 16:9 landscape 1920×1080 · 9:16 vertical 1080×1920 · 1:1 square 1080×1080 · 4K 3840×2160 | 16:9 | `--size` |
-   | Duration | seconds of video | 15 s | `--duration` |
-   | Opening | **Finished artwork**: the painting is complete on the first frame and the whole video is the living painting · **Painting process**: painted stroke by stroke from the toned canvas, then it comes alive · **Final pass**: opens on the nearly finished picture and paints only the last details | Finished artwork | `--opening finished \| paint-on \| final-pass` |
+   | Option   | Choices                                                                                                                                                                                                                                                                                          | Default          | Render flag                                    |
+   | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ---------------------------------------------- |
+   | Format   | 16:9 landscape 1920×1080 · 9:16 vertical 1080×1920 · 1:1 square 1080×1080 · 4K 3840×2160                                                                                                                                                                                                         | 16:9             | `--size`                                       |
+   | Duration | seconds of video                                                                                                                                                                                                                                                                                 | 15 s             | `--duration`                                   |
+   | Opening  | **Finished artwork**: the painting is complete on the first frame and the whole video is the living painting · **Painting process**: painted stroke by stroke from the toned canvas, then it comes alive · **Final pass**: opens on the nearly finished picture and paints only the last details | Finished artwork | `--opening finished \| paint-on \| final-pass` |
 
    Always write the scene with `p.timelapse()` and key motion to `p.livingStart`/`p.endTime` (skeleton below): the same scene then renders in any opening, size and duration, chosen only by flags.
-2. **Study a reference when one exists** (`tools/study.py`, see `references/composition.md`). It reports value masses, key, chroma, palette and focal point — copy the *structure*, never the picture.
-3. **Compose before colour.** Write the composition as a comment at the top of the scene: horizon height (never the middle), focal point (on a third, where the strongest value contrast and highest chroma go), the lead-in, what frames it, and a **value plan** — one value (0–1) for each big shape, in three unequal masses. `references/composition.md`.
+
+2. **Study a reference when one exists** (`tools/study.py`, see `references/composition.md`). It reports value masses, key, chroma, palette and focal point — copy the _structure_, never the picture. **When the user supplies a photo to paint** (or the drawing must be true: a real place, real mountains), paint it with `paintFrom` (`references/api.md` → _Painting from a reference_, `examples/from-photo.js`): the photo gives drawing and values; you choose the focal point, the simplification and the colour. Check the report's `focal` — 'auto' often lands on a bright sky glow.
+3. **Compose before colour.** Decide the camera first: `setView(p, { horizon, eye })` — the horizon is the camera's eye level and every person, building, fence or path is placed and sized from it with `stand()` / `rowToward()` (`references/perspective.md`). Write the composition as a comment at the top of the scene: horizon height (never the middle), focal point (on a third, where the strongest value contrast and highest chroma go), the lead-in, what frames it, and a **value plan** — one value (0–1) for each big shape, in three unequal masses. `references/composition.md`.
 4. **Palette from pigments, placed on the value plan.** `tone(mix({ ultramarine: 1, transYellowOxide: 1 }), 0.42)`. Keep chroma low everywhere except the focal accent (masters: mean OKLab chroma 0.02–0.06, high-chroma area under ~8 %).
-5. **Paint back to front** with the subject painters (`paintSky`, `paintCumulus`, `paintHills`, `paintMountains`, `paintWater`, `paintTreeline`, `paintPine`, `paintFir`, `paintTree`, `paintGrass`, `paintRocks`, `paintHouse`, `paintGlow`, `paintMoon`, `walker`, `boat`, `smoke`…) and raw `layer.scatter/stroke/path` for anything else. One `p.phase('name')` per stage, layers created far → near. `references/api.md`.
-6. **Look, critique, adjust — at least two rounds.** Render a still, open the PNG, and judge it like a painting: squint (do the three value masses read?), is the focal point where planned, is anything equally spaced / equally sized / equally saturated, does any mark look mechanical? Fix the *cause* in code. Run `study.py` on your own still and compare with the plan. This loop is the skill; first renders are never right.
-7. **Time.** `p.timelapse()` for the reveal (used by the *paint-on* and *final-pass* openings, skipped over by *finished*), then motion: `sway`, `drift`, `shimmer`, `p.wind`, `p.camera` (parallax by layer depth), `p.dynamic` for things that travel. `references/animation.md`.
-8. **Contact sheet, then render.** `still --n 12 --sheet --opening paint-on` → check every stage of the painting (do this even when delivering *finished*: it shows each phase); then `render --size … --duration … --opening …` with the brief's choices → `qa`. `references/pipeline.md`.
+5. **Paint back to front** with the subject painters (`paintSky`, `paintCumulus`, `paintHills`, `paintMountains`, `paintWater`, `paintTreeline`, `paintPine`, `paintFir`, `paintTree`, `paintGrass`, `paintRocks`, `paintHouse`, `paintGlow`, `paintMoon`, `walker`, `boat`, `smoke`, `paintFigure`/`figure` for people, `seaSource` for seas and surf…) and raw `layer.scatter/stroke/path` for anything else. People: read `references/figures.md` first. A person who carries the picture is painted from a real photo (`tools/person.py` → `loadPerson` → `paintPerson`), never invented; the procedural `paintFigure` is for small or distant figures, with a real pose from `poseJoints`. One `p.phase('name')` per stage, layers created far → near. `references/api.md`.
+6. **Look, critique, adjust — at least two rounds.** Render a still, open the PNG, and judge it like a painting: squint (do the three value masses read?), is the focal point where planned, is anything equally spaced / equally sized / equally saturated, does any mark look mechanical? Fix the _cause_ in code. Run `study.py` on your own still and compare with the plan. This loop is the skill; first renders are never right.
+7. **Time.** `p.timelapse()` for the reveal (used by the _paint-on_ and _final-pass_ openings, skipped over by _finished_), then motion: `sway`, `drift`, `shimmer`, `p.wind`, `p.camera` (parallax by layer depth), `p.dynamic` for things that travel. `references/animation.md`.
+8. **Contact sheet, then render.** `still --n 12 --sheet --opening paint-on` → check every stage of the painting (do this even when delivering _finished_: it shows each phase); then `render --size … --duration … --opening …` with the brief's choices → `qa`. `references/pipeline.md`.
 9. **Report honestly**: what was checked automatically, what you looked at, what you did not.
 
 ## Scene skeleton
 
 ```js
-import { Painting, mix, tone, mixOk, skyColor, paintSky, ridge, paintHills, paintGrass, key, ease } from 'painter';
-export const meta = { duration: 16, fps: 30 };
+import {
+  Painting,
+  mix,
+  tone,
+  mixOk,
+  skyColor,
+  paintSky,
+  ridge,
+  paintHills,
+  paintGrass,
+  key,
+  ease,
+} from "painter"
+export const meta = { duration: 16, fps: 30 }
 
-export default function ({ aspect, seed }) {            // aspect = width / height of the render
-  const p = new Painting({ aspect, seed, ground: '#c9b89a' });   // toned canvas, never white
-  p.duration = 16;
-  const A = aspect;                                     // scene units: x 0…A, y 0 (top) … 1 (bottom)
+export default function ({ aspect, seed }) {
+  // aspect = width / height of the render
+  const p = new Painting({ aspect, seed, ground: "#c9b89a" }) // toned canvas, never white
+  p.duration = 16
+  const A = aspect // scene units: x 0…A, y 0 (top) … 1 (bottom)
 
-  const skyTop = tone(mix({ ultramarine: 2, titaniumWhite: 2 }), 0.72), skyLow = tone(mix({ cadmiumOrange: 1, titaniumWhite: 3 }), 0.88);
-  const hillCol = tone(mix({ ultramarine: 1, burntUmber: 1 }), 0.3);
-  const hill = ridge({ y: 0.68, amp: 0.05, freq: 2, seed });
+  const skyTop = tone(mix({ ultramarine: 2, titaniumWhite: 2 }), 0.72),
+    skyLow = tone(mix({ cadmiumOrange: 1, titaniumWhite: 3 }), 0.88)
+  const hillCol = tone(mix({ ultramarine: 1, burntUmber: 1 }), 0.3)
+  const hill = ridge({ y: 0.68, amp: 0.05, freq: 2, seed })
 
-  p.phase('sky');
-  paintSky(p.layer('sky', { depth: 0 }), { color: skyColor({ top: 0, bottom: 0.7, stops: [[0, skyTop], [1, skyLow]] }), bottom: 0.72 });
-  p.phase('land');
-  paintHills(p.layer('hill', { depth: 0.6 }), { top: hill, color: (x, y, k) => hillCol, size: 0.03 });
-  paintGrass(p.layer('grass', { depth: 1 }), { bounds: [0, 0.8, A, 1.05], dark: hillCol, light: tone(hillCol, 0.5), blade: 0.05 });
+  p.phase("sky")
+  paintSky(p.layer("sky", { depth: 0 }), {
+    color: skyColor({
+      top: 0,
+      bottom: 0.7,
+      stops: [
+        [0, skyTop],
+        [1, skyLow],
+      ],
+    }),
+    bottom: 0.72,
+  })
+  p.phase("land")
+  paintHills(p.layer("hill", { depth: 0.6 }), {
+    top: hill,
+    color: (x, y, k) => hillCol,
+    size: 0.03,
+  })
+  paintGrass(p.layer("grass", { depth: 1 }), {
+    bounds: [0, 0.8, A, 1.05],
+    dark: hillCol,
+    light: tone(hillCol, 0.5),
+    blade: 0.05,
+  })
 
-  p.timelapse({ start: 0.3, end: 10 });                 // the painting process (shown with --opening paint-on / final-pass)
+  p.timelapse({ start: 0.3, end: 10 }) // the painting process (shown with --opening paint-on / final-pass)
   // key motion to p.livingStart (picture complete) and p.endTime (last frame): correct for every opening and --duration
-  p.camera = (t) => ({ zoom: key(t, [[p.livingStart, 1], [p.endTime, 1.07]], ease.inOut) });
-  p.wind = (t) => ({ strength: key(t, [[0, 0], [p.livingStart, 0.15], [p.livingStart + 2, 1]]) });
-  return p;
+  p.camera = (t) => ({
+    zoom: key(
+      t,
+      [
+        [p.livingStart, 1],
+        [p.endTime, 1.07],
+      ],
+      ease.inOut,
+    ),
+  })
+  p.wind = (t) => ({
+    strength: key(t, [
+      [0, 0],
+      [p.livingStart, 0.15],
+      [p.livingStart + 2, 1],
+    ]),
+  })
+  return p
 }
 ```
 
@@ -105,5 +155,8 @@ export default function ({ aspect, seed }) {            // aspect = width / heig
 - `references/painting-lessons.md` — what each demonstration teaches and how it maps to engine calls.
 - `references/composition.md` — composing a scene, the value plan, numbers from the masters, `study.py`.
 - `references/api.md` — Painting / layer / brush / colour / subject-painter reference, writing a new subject painter.
+- `references/sea.md` — the sea after Aivazovsky: what his waves show, how he painted them, and `seaSource` + `paintFrom` (a modelled sea, solids like piers, painted with his palette and glow).
+- `references/perspective.md` — horizon = eye level, sizing people and objects from where they touch the ground, vanishing points, atmospheric depth, the debug guides.
+- `references/figures.md` — people: gesture → blobs → form → skin, the 7.5-head canon, painting skin, poses, `paintFigure` options.
 - `references/animation.md` — reveal pacing, living motion, camera and parallax, dynamic layers, boil, audio.
 - `references/pipeline.md` — CLI, render settings, performance, QA, troubleshooting, deliverables.

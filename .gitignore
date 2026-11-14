@@ -14,3 +14,6 @@ examples/stills/
 
 # private working notes, not published
 docs/improvement-plan.md
+
+# models downloaded by tools/person.py
+tools/models/

@@ -29,7 +29,7 @@ From an idea to a living painting: composition, pigments, brushwork, and motion.
 
 **pAInter gives an agent a complete painting workflow:** plan the composition, establish value masses, mix pigments, place strokes from background to foreground, inspect the result, and refine it before adding motion.
 
-The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This repository includes the rendering engine, painting references, six starter scenes, and an image study tool. The agent writes a JavaScript scene; the engine turns it into images and video with canvas texture, bristles, dry brush, and raised paint.
+The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This repository includes the rendering engine, painting references, ten starter scenes, and an image study tool. The agent writes a JavaScript scene; the engine turns it into images and video with canvas texture, bristles, dry brush, and raised paint.
 
 | Artistic decision | How the skill approaches it |
 | :--- | :--- |
@@ -115,7 +115,7 @@ GIF previews use 640 px and 10 fps. The MP4s retain 1280 × 720 at 30 fps, compr
 
 ### Recent results
 
-**All four were painted by agents that had never seen the skill before**: each one received only this folder and a one-paragraph brief, read SKILL.md, wrote its own scene, critiqued its stills, and delivered the video. These cold tests are how the skill was validated; the six files in `examples/` are starter scenes.
+**All four were painted by agents that had never seen the skill before**: each one received only this folder and a one-paragraph brief, read SKILL.md, wrote its own scene, critiqued its stills, and delivered the video. These cold tests are how the skill was validated; the ten files in `examples/` are starter scenes.
 
 <table>
 <tr>
@@ -271,6 +271,10 @@ This writes `study/t016.00_study.jpg` and `study/_metrics.json`. On Windows, use
 | [lake-path.js](examples/lake-path.js) | Depth, trees, and a path that leads the eye. |
 | [lone-pine.js](examples/lone-pine.js) | A vertical subject, branches, and needle masses. |
 | [mountain-hamlet.js](examples/mountain-hamlet.js) | Mountains, a cabin, rocks, a walking figure, and smoke. |
+| [from-photo.js](examples/from-photo.js) | Painting from a photo with `paintFrom`: value masses, form, and detail around a focal point. |
+| [sea-pier.js](examples/sea-pier.js) | A storm at sunset after Aivazovsky: a modelled sea, a pier, and a woman painted from a photo. |
+| [people-landscape.js](examples/people-landscape.js) | Real people: one painted from a photo, one mannequin with a real pose. |
+| [figure-chart.js](examples/figure-chart.js) | People: the five construction stages of a pose, and seven finished poses. |
 | [brush-chart.js](examples/brush-chart.js) | Brushes, textures, and pigment mixes. |
 
 These examples remain starting points; the README gallery shows later work.
@@ -283,9 +287,9 @@ These examples remain starting points; the README gallery shows later work.
 painter-skill/
 ├── SKILL.md              Agent instructions and painting workflow
 ├── engine/               WebGPU engine, shaders, pigments, and CLI
-├── examples/             Six starter JavaScript scenes
+├── examples/             Ten starter JavaScript scenes and reference photos
 ├── references/           Composition, painting, API, animation, and pipeline
-├── tools/                Image analysis and Python dependencies
+├── tools/                Image study, person reader (pose and masks), Python dependencies
 └── docs/                 Skill review and gallery media
 ```
 
@@ -295,6 +299,9 @@ painter-skill/
 | [Composition](references/composition.md) | Plan values, palette, and focal point. |
 | [Painting lessons](references/painting-lessons.md) | Translate painting gestures into code. |
 | [Engine API](references/api.md) | Layers, brushes, pigments, and scene functions. |
+| [Sea](references/sea.md) | Waves after Aivazovsky: a modelled sea painted with his palette, glow, and foam. |
+| [Perspective](references/perspective.md) | Horizon and eye level, sizing things by distance, vanishing points, atmospheric depth. |
+| [Figures](references/figures.md) | People: construction, proportions, skin, and poses. |
 | [Animation](references/animation.md) | Reveal, motion, camera, and dynamic subjects. |
 | [Pipeline](references/pipeline.md) | CLI, export, performance, and troubleshooting. |
 | [Technical review](docs/skill-review.md) | Strengths, limitations, and publication checks. |
@@ -303,7 +310,9 @@ The engine combines **WebGPU/WGSL** for strokes, **spectral.js** for pigment mix
 
 ## Credits
 
-The skill brings together instructions, implementation, and painting studies. Its references acknowledge demonstrations by Alpay Efe, A Lu Art, Thomas Windsor, and Andrew Tischler, alongside studies of classic landscapes. The gallery contains results generated in the working project; downloaded reference videos are not included.
+The skill brings together instructions, implementation, and painting studies. Its references acknowledge demonstrations by Alpay Efe, A Lu Art, Thomas Windsor, and Andrew Tischler, alongside studies of classic landscapes. The sea guide draws on Ivan Aivazovsky's paintings (public domain) and on lessons by Alexander Yakov, Aiymoonchild, and Daria Mars. The perspective guide draws on lessons by Rocky Kim (as summarised by brokendraw), Kim Jung Gi, Proko, Ian Roberts, and James Gurney, and on measurements of paintings by Caillebotte, Seurat, and Bruegel. The figure guide draws on anatomy lessons by Fungzau, NIRO, and Sinix Design, and on public-domain plates by George Bridgman, John Vanderpoel, Leonardo da Vinci, and Eadweard Muybridge. The gallery contains results generated in the working project; downloaded reference videos are not included.
+
+The reference photos in `examples/refs/` are CC0 from Wikimedia Commons (Unsplash uploads): "Hiking in the Dolomites" (`hiker.jpg`), "Woman in a dress" (`woman-dress.jpg`), and the pose of "Woman walking on a sand beach" (`walker.person.json`). `mountain-lake.jpg` is ["Beautiful mountain reflection (Unsplash)"](https://commons.wikimedia.org/wiki/File:Beautiful_mountain_reflection_(Unsplash).jpg) from Wikimedia Commons, dedicated to the public domain (CC0). The painting-from-reference method follows Aaron Hertzmann's "Painterly Rendering with Curved Brush Strokes of Multiple Sizes" (SIGGRAPH 1998), with value massing, a focal detail budget, and edge rules added.
 
 **spectral.js**, by Ronald van Wijnen, retains its [original MIT license](engine/src/vendor/spectral.LICENSE). Dependencies retain their own licenses. A repository-wide license for the original code and media has not yet been declared.
 

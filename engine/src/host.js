@@ -25,7 +25,7 @@ async function boot() {
 
   const api = {
     info: { width, height, fps, duration: painting.duration, strokes: painting.strokeCount, buildMs: Math.round(buildMs),
-      opening: painting.opening, timeOffset: +off.toFixed(3),
+      opening: painting.opening, timeOffset: +off.toFixed(3), reference: painting.reference ?? undefined,
       layers: painting.layers.map((l) => ({ name: l.name, strokes: l.count, depth: l.depth, dynamic: !!l.dynamic })),
       // phase times in VIDEO seconds (negative = already painted before the first frame)
       phases: painting.phaseTimes ? Object.fromEntries(Object.entries(painting.phaseTimes).map(([k, [a, b]]) => [k, [+(a - off).toFixed(3), +(b - off).toFixed(3)]])) : null },
