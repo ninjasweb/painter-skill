@@ -34,7 +34,7 @@ p.duration = 16; p.fps = 30;
 | `width`, `taper: [start, end]` | Brush width; width factors at each end. |
 | `color`, `color2`, `mix2` | Paint; optional second colour on a share (0–1) of the bristles. |
 | `opacity`, `pickup` | Coverage; 0–1 of the underlying colour dragged into the stroke (wet-into-wet). |
-| `brush` | Preset name or object. Overridable fields: `bristles, soft, fray, dry, thick, load`. |
+| `brush` | Preset name or object. Overridable fields: `bristles, soft, fray, dry, thick, load`. `thick < 0` = colour only: the stroke re-colours the canvas and leaves the relief of the paint underneath untouched (cutting a shape back with background colour without a seam). |
 | `sway, swayRoot` | Wind amplitude (scene units); 0 = anchored at `p0` (grass) … 1 = whole stroke moves (leaves). |
 | `drift: [vx, vy]` | Constant velocity, units/second (clouds 0.002–0.005). |
 | `shimmer` | 0–1 flicker of opacity (water glints, rays). |

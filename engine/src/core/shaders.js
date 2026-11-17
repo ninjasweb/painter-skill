@@ -164,7 +164,8 @@ struct FOut { @location(0) color: vec4f, @location(1) height: vec4f };
 
   var o: FOut;
   o.color = vec4f(c, a);
-  o.height = vec4f(h, thick, 0.0, a * 0.85);
+  // thick < 0: colour only — the paint film underneath keeps its relief (re-colouring an area without a seam)
+  o.height = select(vec4f(h, thick, 0.0, a * 0.85), vec4f(0.0), thick < 0.0);
   return o;
 }
 `;

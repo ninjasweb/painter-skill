@@ -324,15 +324,15 @@ export function paintBillowCloud(layer, cloud, { sky, colors = cloudPalette(), s
   //    cloud in one clean edge; no pickup (a white-tinted sky stroke reads as a stitch).
   const sunSide = (x, y) => clamp(0.5 + 0.5 * (((x - cloud.x) / cloud.w) * lx * 2 + ((y - cloud.base + cloud.h * 0.5) / cloud.h) * ly));
   const reach = size * 0.9;                                  // covers the half-width of the widest body strokes
-  //    They are sky strokes — the sky's brush, direction and paint thickness — so the ring around the cloud has the
-  //    same texture as the rest of the sky (tangent strokes or thin paint here read as a halo).
+  //    They are sky strokes — the sky's brush and direction — and they only re-colour (thick −1): the relief of the
+  //    sky painted underneath runs on unbroken, so the ring has no texture of its own (anything else reads as a halo).
   layer.scatter({ bounds: B, spacing: size * 0.13, order: 'random', brush: 'flat',
     mask: (x, y) => { const a = cloud.at(x, y); return !a.lobe && a.inside < 0 && a.gap > size * 0.14 && a.gap < reach && y < cloud.baseAt(x) - cloud.h * cloud.flat * 0.5 && cloud.isSky(x, y) ? 1 : 0; },
     width: (x, y, r) => size * r.range(0.22, 0.34), length: (x, y, r) => size * r.range(0.7, 1.2),
     angle: (x, y, r) => (r() < 0.5 ? 0.22 : -0.22) + (r() - 0.5) * 0.5,
     color: (x, y, r) => vary(skyAt(x, y), r, 0.006, 0.003, 1),
     soft: (x, y) => lerp(0.6, 0.22, sunSide(x, y)), opacity: (x, y) => lerp(0.6, 1, sunSide(x, y)),
-    thick: 0.12, fray: 0.2, dry: 0.04, bristles: 20, pickup: 0, drift });
+    thick: -1, fray: 0.2, dry: 0.04, bristles: 20, pickup: 0, drift });   // colour only: the sky's own relief runs on under the ring
   //    …then the outline itself: small round touches of sky laid along each lobe's curve, so the edge is a row of
   //    rounded scallops (the round brush working round the silhouette), with the sky's paint thickness
   layer.scatter({ bounds: B, spacing: size * 0.07, order: 'random', brush: 'round',
@@ -341,7 +341,7 @@ export function paintBillowCloud(layer, cloud, { sky, colors = cloudPalette(), s
     angle: (x, y, r) => { const n = cloud.at(x, y).near; return n ? Math.atan2(y - n.y, x - n.x) + Math.PI / 2 + (r() - 0.5) * 0.2 : 0; },
     color: (x, y, r) => vary(skyAt(x, y), r, 0.005, 0.003, 1),
     soft: (x, y) => lerp(0.7, 0.3, sunSide(x, y)), opacity: (x, y) => lerp(0.55, 1, sunSide(x, y)),
-    thick: 0.1, fray: 0.05, dry: 0, bristles: 12, pickup: 0, drift });
+    thick: -1, fray: 0.05, dry: 0, bristles: 12, pickup: 0, drift });
   // 5. the base: a few level, soft drags that dissolve the flat bottom into the haze (no slab below the cloud)
   ph('base');
   const bh = cloud.h * cloud.flat, by = (x) => cloud.baseAt(x);

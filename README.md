@@ -19,7 +19,7 @@ From an idea to a living painting: composition, pigments, brushwork, and motion.
 
 [Watch the process](#watch-the-process) · [Study](#study-understand-the-image) · [Install](#install-the-skill) · [Try it](#your-first-painting) · [Documentation](#inside-the-skill)
 
-<a href="docs/media/sunset-lake.mp4"><img src="docs/media/sunset-lake-process.gif" width="800" alt="Sunset Lake: strokes build the scene in stages before the finished painting comes to life"></a>
+<a href="docs/media/sunset-lake.mp4"><img src="docs/media/sunset-lake-process.gif" width="800" alt="Sunset Lake: strokes build the sky, a towering sunset cumulus, the range and the lake before the painting comes to life"></a>
 
 *Sunset Lake · 8 seconds · GIF preview · click to open the MP4.*
 
@@ -29,7 +29,7 @@ From an idea to a living painting: composition, pigments, brushwork, and motion.
 
 **pAInter gives an agent a complete painting workflow:** plan the composition, establish value masses, mix pigments, place strokes from background to foreground, inspect the result, and refine it before adding motion.
 
-The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This repository includes the rendering engine, painting references, ten starter scenes, and an image study tool. The agent writes a JavaScript scene; the engine turns it into images and video with canvas texture, bristles, dry brush, and raised paint.
+The entry point is [SKILL.md](SKILL.md), registered as `painterly-video`. This repository includes the rendering engine, painting references, eleven starter scenes, and an image study tool. The agent writes a JavaScript scene; the engine turns it into images and video with canvas texture, bristles, dry brush, and raised paint.
 
 | Artistic decision | How the skill approaches it |
 | :--- | :--- |
@@ -79,7 +79,7 @@ The same scene renders in any format, length, and opening, chosen by flags; befo
 | Duration | `--duration 15` | 15 s |
 | Opening | `--opening finished` (complete on the first frame) · `paint-on` (painted stroke by stroke) · `final-pass` (only the last details are painted) | `finished` |
 
-Ready-made painters cover skies, sun and moon, cumulus and storm clouds, rays, hills, mountains, water, trees, firs, pines, grass, rocks, houses, boats, figures, and smoke; anything else is built from `layer.stroke`, `layer.scatter`, and `layer.path`. See the [Engine API](references/api.md).
+Ready-made painters cover skies, sun and moon, towering cumulus (by day and at sunset) and storm clouds, rays, hills, mountains, water, trees, firs, pines, grass, rocks, houses, boats, figures, and smoke; anything else is built from `layer.stroke`, `layer.scatter`, and `layer.path`. See the [Engine API](references/api.md).
 
 ## Watch the process
 
@@ -115,15 +115,17 @@ GIF previews use 640 px and 10 fps. The MP4s retain 1280 × 720 at 30 fps, compr
 
 ### Recent results
 
-**All four were painted by agents that had never seen the skill before**: each one received only this folder and a one-paragraph brief, read SKILL.md, wrote its own scene, critiqued its stills, and delivered the video. These cold tests are how the skill was validated; the ten files in `examples/` are starter scenes.
+**All four were painted by agents that had never seen the skill before**: each one received only this folder and a one-paragraph brief, read SKILL.md, wrote its own scene, critiqued its stills, and delivered the video. These cold tests are how the skill was validated; the eleven files in `examples/` are starter scenes.
+
+Sunset Lake and Last Light were painted again after the skill learned to paint cumulus clouds, by new cold-test agents given the original briefs plus "towering cumulus clouds lit by the low sun". Their scenes are published as the agents wrote them; the media were rendered with the current engine, which since their runs no longer leaves a faint ring of texture around a cloud's outline.
 
 <table>
 <tr>
 <td width="50%"><a href="docs/media/alps-morning.jpg"><img src="docs/media/alps-morning.jpg" alt="Alps Morning: snowy mountains, morning light, and pines beside a lake"></a><br><strong>Alps Morning</strong><br>Morning light · latest available still · <a href="docs/media/studies/alps-morning_study.jpg">study</a></td>
-<td width="50%"><a href="docs/media/sunset-lake.mp4"><img src="docs/media/sunset-lake.jpg" alt="Sunset Lake: a low sun, mountains, and warm reflections"></a><br><strong>Sunset Lake</strong><br>Sunset · 8 s · <a href="docs/media/sunset-lake.mp4">MP4</a> · <a href="docs/media/studies/sunset-lake_study.jpg">study</a></td>
+<td width="50%"><a href="docs/media/sunset-lake.mp4"><img src="docs/media/sunset-lake.jpg" alt="Sunset Lake: a towering cumulus lit by the low sun behind a snowy range, and the sun's path on the lake"></a><br><strong>Sunset Lake</strong><br>Sunset · 8 s · <a href="docs/media/sunset-lake.mp4">MP4</a> · <a href="docs/media/studies/sunset-lake_study.jpg">study</a></td>
 </tr>
 <tr>
-<td width="50%"><a href="docs/media/last-light.mp4"><img src="docs/media/last-light.jpg" alt="Last Light: warm light on a mountain beneath dark clouds"></a><br><strong>Last Light</strong><br>Last light · 10 s · <a href="docs/media/last-light.mp4">MP4</a> · <a href="docs/media/studies/last-light_study.jpg">study</a></td>
+<td width="50%"><a href="docs/media/last-light.mp4"><img src="docs/media/last-light.jpg" alt="Last Light: a cumulus catching the last warm light above a snowy range mirrored in a still lake"></a><br><strong>Last Light</strong><br>Last light · 10 s · <a href="docs/media/last-light.mp4">MP4</a> · <a href="docs/media/studies/last-light_study.jpg">study</a></td>
 <td width="50%"><a href="docs/media/blue-hour-lake.mp4"><img src="docs/media/blue-hour-lake.jpg" alt="Blue Hour Lake: moonlight, reflections, and an illuminated boat"></a><br><strong>Blue Hour Lake</strong><br>Blue hour · 10 s · <a href="docs/media/blue-hour-lake.mp4">MP4</a></td>
 </tr>
 </table>
@@ -151,11 +153,15 @@ The strip below shows colors in proportion to their share of the image. The foca
 
 ![Alps Morning study](docs/media/studies/alps-morning_study.jpg)
 
-**Last Light** — a warm accent within a darker structure.
+**Last Light** — a warm cumulus as the light mass, over a mid-value range and its mirror.
 
 ![Last Light study](docs/media/studies/last-light_study.jpg)
 
-[Explore the metrics for all three images](docs/media/studies/_metrics.json).
+**Summer Cumulus** — a towering daytime cumulus, the starter scene for the cloud method: light cloud against a darker sky and land.
+
+![Summer Cumulus study](docs/media/studies/summer-cumulus_study.jpg)
+
+[Explore the metrics for all four images](docs/media/studies/_metrics.json).
 
 </details>
 
@@ -268,6 +274,7 @@ This writes `study/t016.00_study.jpg` and `study/_metrics.json`. On Windows, use
 | :--- | :--- |
 | [sunset-river.js](examples/sunset-river.js) | Sky, cumulus clouds, reflections, and vegetation. |
 | [sunset-study.js](examples/sunset-study.js) | Dark cloud masses and illuminated edges. |
+| [summer-cumulus.js](examples/summer-cumulus.js) | A towering cumulus painted alla prima: cut out of the sky, lit rims, folds of shade, clouds in perspective. |
 | [lake-path.js](examples/lake-path.js) | Depth, trees, and a path that leads the eye. |
 | [lone-pine.js](examples/lone-pine.js) | A vertical subject, branches, and needle masses. |
 | [mountain-hamlet.js](examples/mountain-hamlet.js) | Mountains, a cabin, rocks, a walking figure, and smoke. |
@@ -287,7 +294,7 @@ These examples remain starting points; the README gallery shows later work.
 painter-skill/
 ├── SKILL.md              Agent instructions and painting workflow
 ├── engine/               WebGPU engine, shaders, pigments, and CLI
-├── examples/             Ten starter JavaScript scenes and reference photos
+├── examples/             Eleven starter JavaScript scenes and reference photos
 ├── references/           Composition, painting, API, animation, and pipeline
 ├── tools/                Image study, person reader (pose and masks), Python dependencies
 └── docs/                 Skill review and gallery media
@@ -310,7 +317,7 @@ The engine combines **WebGPU/WGSL** for strokes, **spectral.js** for pigment mix
 
 ## Credits
 
-The skill brings together instructions, implementation, and painting studies. Its references acknowledge demonstrations by Alpay Efe, A Lu Art, Thomas Windsor, and Andrew Tischler, alongside studies of classic landscapes. The sea guide draws on Ivan Aivazovsky's paintings (public domain) and on lessons by Alexander Yakov, Aiymoonchild, and Daria Mars. The perspective guide draws on lessons by Rocky Kim (as summarised by brokendraw), Kim Jung Gi, Proko, Ian Roberts, and James Gurney, and on measurements of paintings by Caillebotte, Seurat, and Bruegel. The figure guide draws on anatomy lessons by Fungzau, NIRO, and Sinix Design, and on public-domain plates by George Bridgman, John Vanderpoel, Leonardo da Vinci, and Eadweard Muybridge. The gallery contains results generated in the working project; downloaded reference videos are not included.
+The skill brings together instructions, implementation, and painting studies. Its references acknowledge demonstrations by Alpay Efe, A Lu Art, Thomas Windsor, Andrew Tischler, and brennerfineart (cumulus alla prima), alongside studies of classic landscapes. The sea guide draws on Ivan Aivazovsky's paintings (public domain) and on lessons by Alexander Yakov, Aiymoonchild, and Daria Mars. The perspective guide draws on lessons by Rocky Kim (as summarised by brokendraw), Kim Jung Gi, Proko, Ian Roberts, and James Gurney, and on measurements of paintings by Caillebotte, Seurat, and Bruegel. The figure guide draws on anatomy lessons by Fungzau, NIRO, and Sinix Design, and on public-domain plates by George Bridgman, John Vanderpoel, Leonardo da Vinci, and Eadweard Muybridge. The gallery contains results generated in the working project; downloaded reference videos are not included.
 
 The reference photos in `examples/refs/` are CC0 from Wikimedia Commons (Unsplash uploads): "Hiking in the Dolomites" (`hiker.jpg`), "Woman in a dress" (`woman-dress.jpg`), and the pose of "Woman walking on a sand beach" (`walker.person.json`). `mountain-lake.jpg` is ["Beautiful mountain reflection (Unsplash)"](https://commons.wikimedia.org/wiki/File:Beautiful_mountain_reflection_(Unsplash).jpg) from Wikimedia Commons, dedicated to the public domain (CC0). The painting-from-reference method follows Aaron Hertzmann's "Painterly Rendering with Curved Brush Strokes of Multiple Sizes" (SIGGRAPH 1998), with value massing, a focal detail budget, and edge rules added.
 
