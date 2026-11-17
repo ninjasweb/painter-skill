@@ -9,6 +9,7 @@ Selected from the most recent available iterations of the painter working projec
 | last-light.jpg, MP4, and GIF | agent-test-7/last-light.mp4 | Final MP4 from 17:51. |
 | blue-hour-lake.jpg and MP4 | agent-test-6/blue-hour-lake.mp4 | Final MP4 from 17:41. |
 | alps-morning.jpg | agent-test-9/stills/alps-morning/t008.00.png | Latest available still, 22:38. No MP4 was available. |
+| summer-cumulus.jpg and MP4 | cloud-study/out/summer-cumulus.mp4 (`examples/summer-cumulus.js`, `--seed 4 --opening paint-on --duration 16`) | Final MP4 of November 16, 2026; poster at 15.966 s. |
 | studies/*_study.jpg | Images published in this directory | Regenerated using this skill's study.py tool. |
 
 ## Preparation
@@ -24,7 +25,7 @@ To regenerate the studies from the repository root with the Python dependencies 
 
 ```bash
 python tools/study.py docs/media/sunset-lake.jpg \
-  docs/media/last-light.jpg docs/media/alps-morning.jpg \
+  docs/media/last-light.jpg docs/media/alps-morning.jpg docs/media/summer-cumulus.jpg \
   --out docs/media/studies
 ```
 

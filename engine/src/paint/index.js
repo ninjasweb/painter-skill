@@ -9,3 +9,4 @@ export * from './figure.js';
 export * from './perspective.js';
 export * from './sea.js';
 export * from './sdf.js';
+export * from './clouds.js';

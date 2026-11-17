@@ -82,7 +82,7 @@
     "C": 0.06
    }
   ],
-  "sheet": "docs/media/studies/sunset-lake_study.jpg"
+  "sheet": "/Users/aaarrrggg/.claude/skills/painterly-video/docs/media/studies/sunset-lake_study.jpg"
  },
  {
   "file": "last-light.jpg",
@@ -167,7 +167,7 @@
     "C": 0.069
    }
   ],
-  "sheet": "docs/media/studies/last-light_study.jpg"
+  "sheet": "/Users/aaarrrggg/.claude/skills/painterly-video/docs/media/studies/last-light_study.jpg"
  },
  {
   "file": "alps-morning.jpg",
@@ -252,6 +252,91 @@
     "C": 0.045
    }
   ],
-  "sheet": "docs/media/studies/alps-morning_study.jpg"
+  "sheet": "/Users/aaarrrggg/.claude/skills/painterly-video/docs/media/studies/alps-morning_study.jpg"
+ },
+ {
+  "file": "summer-cumulus.jpg",
+  "value_masses_dark_mid_light": [
+   0.52,
+   0.32,
+   0.15
+  ],
+  "value_centers": [
+   0.42,
+   0.61,
+   0.8
+  ],
+  "key_mean_L": 0.54,
+  "value_range_p2_p98": [
+   0.3,
+   0.91
+  ],
+  "L_top_mid_bottom": [
+   0.46,
+   0.64,
+   0.52
+  ],
+  "chroma_mean": 0.056,
+  "chroma_p95": 0.105,
+  "high_chroma_area(>0.12)": 0.0,
+  "warmth_lights": -0.53,
+  "warmth_darks": -0.51,
+  "focal_xy": [
+   0.35,
+   0.17
+  ],
+  "edge_density": 0.0124,
+  "edge_density_focal_vs_rest": 1.16,
+  "palette": [
+   {
+    "hex": "#2d390f",
+    "share": 0.077,
+    "L": 0.32,
+    "C": 0.064
+   },
+   {
+    "hex": "#2e447d",
+    "share": 0.2,
+    "L": 0.4,
+    "C": 0.1
+   },
+   {
+    "hex": "#4b5a33",
+    "share": 0.079,
+    "L": 0.45,
+    "C": 0.061
+   },
+   {
+    "hex": "#445e89",
+    "share": 0.177,
+    "L": 0.48,
+    "C": 0.076
+   },
+   {
+    "hex": "#5e788a",
+    "share": 0.17,
+    "L": 0.56,
+    "C": 0.042
+   },
+   {
+    "hex": "#84979d",
+    "share": 0.142,
+    "L": 0.66,
+    "C": 0.023
+   },
+   {
+    "hex": "#b0b4b6",
+    "share": 0.072,
+    "L": 0.77,
+    "C": 0.006
+   },
+   {
+    "hex": "#d9dad3",
+    "share": 0.081,
+    "L": 0.89,
+    "C": 0.009
+   }
+  ],
+  "sheet": "/Users/aaarrrggg/.claude/skills/painterly-video/docs/media/studies/summer-cumulus_study.jpg"
  }
 ]

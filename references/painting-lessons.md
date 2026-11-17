@@ -1,6 +1,6 @@
 # Painting lessons → code
 
-What the four demonstrations teach (watched frame by frame with their narration) and how each lesson is expressed in the engine. Read this before writing a new subject painter or when a still "doesn't look painted".
+What the demonstrations teach (watched frame by frame with their narration) and how each lesson is expressed in the engine. Read this before writing a new subject painter or when a still "doesn't look painted".
 
 ## 1. The four-step process (Alpay Efe, "Paint anything in 4 simple steps")
 
@@ -76,3 +76,44 @@ The rhythm matters for the reveal: a painter lays a handful of marks, pauses to 
 - Repeat a colour elsewhere (sky colour in the water, a warm note from the light in the foreground) so the picture is one family.
 - Leave things out. A far forest is a strip of two values, not trees.
 - Never the same twice: no two clouds the same size, no evenly spaced trees, no horizon in the middle, no object dead centre unless the picture is about symmetry.
+
+## 8. Daytime cumulus, alla prima (brennerfineart, "How to paint really realistic clouds alla prima") — order of work
+
+Oil, small canvas, no narration (timelapse). Palette: titanium white, lemon yellow, raw sienna, cadmium red, phthalo blue, dioxazine purple, lamp black. Before painting he numbers places on the reference photo and premixes one pool per place: three sky blues, five cloud greys.
+
+1. `0:15–0:50` **three sky mixes** matched to the reference — darkest and most saturated at the zenith (top left), lighter towards the horizon.
+2. `0:55–1:50` **sky first, around the cloud** with a flat brush: the cloud is the white canvas left unpainted. The bumpy silhouette is made by the *sky* strokes (negative painting), crisp where the sun hits.
+3. `1:55–3:00` **five cloud mixes** (warm white for the lit tops, blue-violet greys for the shadows). A small round brush works along the outline from the sky into the cloud, softening it a little on the shadow side.
+4. `3:00–6:30` **the cauliflower, top down**: on each lump a light crescent on the rim that faces the sun and grey-violet shade beneath it, where it tucks behind the next lump. Lumps get smaller towards the top and the outline; each lit edge sits crisp against the shade above it, so the surface reads as overlapping scales.
+5. `6:40–8:45` **the lower body**: bigger, softer lumps in a broad grey-violet shadow; a soft dry brush blends them (the paint stays smooth — no impasto in the cloud).
+6. `8:50–10:45` second cloud the same way; unify with light blending passes.
+7. `10:50–11:30` **the base**: level strokes of a flat brush that dissolve the flat bottom into a lighter blue haze; a small distant cloud.
+
+Measured (OKLab) on his reference photo: sky 0.44 · cloud shadows 0.70–0.80 (low chroma ~0.015, violet hue) · mid 0.83–0.88 · lights 0.93–0.97 (warm). **The shadows of a white cloud are far lighter than the sky behind it**; the strongest contrast in the picture is the lit top against the zenith blue.
+
+What it teaches, as rules:
+
+- **Sky first, the cloud cut out of it.** The sky's paint defines the silhouette, with the sky's own brush and thickness.
+- **A cumulus is a cauliflower**: big masses → heads → knobs. On the outline mostly small scallops with now and then a big head standing proud; never a heap of equal bubbles, never a smooth dome.
+- **Nearer = lower**: each lobe overlaps the ones above it; light on its sunward top rim, shade just above that rim (the lobe behind). That pattern of crisp light under soft shade *is* the cumulus.
+- **Edges**: crisp, scalloped on the sun side; lost on the shadow side; the base flat but irregular, dissolving into haze.
+- **Smooth paint.** Interior strokes short and in any direction, only the rims follow the curve; one curve for every stroke round a lobe centre gives target rings, like a fingerprint.
+- **Cloud perspective**: cumulus bases share one level, so far clouds sit lower (towards the horizon), smaller, flatter, closer together, greyer and softer.
+
+In code: `paintSky` → `billowCloud` (shape) → `paintBillowCloud` (block-in → blend → lights → folds → edges cut in with sky paint → base), far clouds first with lower `size`/`detail` and colours pulled towards the low sky. `examples/summer-cumulus.js`. Use `paintCumulus` only for small or background clouds and `paintCloudMass` for dark sunset/storm masses.
+
+What went wrong while building it (each fixed in `paintBillowCloud`; worth knowing when writing any painter that cuts a shape out of a background):
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Hairy heap, sky holes | long bristly strokes scattered on a lumpy mask | underpainting of broad thin strokes first; form comes from lobes, not stroke texture |
+| Bubble wrap / equal balls in a grid | one size of lobe, evenly spaced | hierarchy masses → heads → knobs, sizes varied, overlaps |
+| Smooth dome outline | big core lobes sticking out of the envelope | core clipped to the envelope; only rim lobes and heads shape the outline |
+| Target rings | every stroke curved round its lobe centre | curve only near the rim; short random strokes inside |
+| Ink outlines between lobes | folds painted as thin dark crescents | broad, very soft bands one value step down |
+| Halo ring round the cloud | cut-in strokes with another brush, direction and thickness than the sky | cut in with sky-like strokes (flat, ±0.2 rad, sky thickness) + a thin row of round touches on the edge |
+| Saw-tooth edge | square ends of flat strokes defining the outline | small round touches along each lobe's curve make the actual edge |
+| Dots of sky inside | pockets reached by narrow channels counted as sky | morphological closing before flood-filling the outside |
+| Loose white blobs beside the cloud | long strokes poking out past the cut-in ring | every cloud stroke is shortened until both ends land inside, or dropped |
+| Cloud reads white but measures dark | too much area at the shadow end of the ramp | check with numbers: median cloud L ≈ 0.8–0.85 in daylight |
+
