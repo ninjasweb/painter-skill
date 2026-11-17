@@ -102,6 +102,8 @@ What it teaches, as rules:
 
 In code: `paintSky` → `billowCloud` (shape) → `paintBillowCloud` (block-in → blend → lights → folds → edges cut in with sky paint → base), far clouds first with lower `size`/`detail` and colours pulled towards the low sky. `examples/summer-cumulus.js`. Use `paintCumulus` only for small or background clouds and `paintCloudMass` for dark sunset/storm masses.
 
+**At sunset** (not in the demonstration; checked on test renders): the low sun lights the cloud from the side or from below, so the bellies and the sunward flank glow (orange-peach, gold only nearest the sun) and the tops and far flank sink into violet-grey shade, darker in value than by day. The whole heap carries the light — modelling each lobe on its own side turns it into a pile of glowing bubbles. Use `cloudPalette({ time: 'sunset' })`, a `light` vector computed per cloud towards the sun, and let `paintBillowCloud` place the folds on the sunward rims (it does so from `light`).
+
 What went wrong while building it (each fixed in `paintBillowCloud`; worth knowing when writing any painter that cuts a shape out of a background):
 
 | Symptom | Cause | Fix |
@@ -116,4 +118,5 @@ What went wrong while building it (each fixed in `paintBillowCloud`; worth knowi
 | Dots of sky inside | pockets reached by narrow channels counted as sky | morphological closing before flood-filling the outside |
 | Loose white blobs beside the cloud | long strokes poking out past the cut-in ring | every cloud stroke is shortened until both ends land inside, or dropped |
 | Cloud reads white but measures dark | too much area at the shadow end of the ramp | check with numbers: median cloud L ≈ 0.8–0.85 in daylight |
+| Sunset cloud = daytime cloud pasted on an orange sky, or a pile of glowing bubbles | daylight palette; base always shaded; each lobe modelled on its own side; folds always above the lobes | `time: 'sunset'` palette; base lit when the sun is below; `lobeLight` falls as the sun drops; folds on the sunward rims |
 

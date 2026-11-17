@@ -47,7 +47,7 @@ Per-stroke motion, evaluated on the GPU (free at any stroke count):
 | Field | Effect | Typical values |
 |---|---|---|
 | `sway` + `swayRoot` | wind displacement; root 0 = anchored at `p0` | grass 0.008–0.015 (root 0) · needles/leaves 0.003–0.005 (root 0.3–1) · far trees 0.0015 · water 0.004 |
-| `drift: [vx, vy]` | constant travel | clouds 0.002–0.005 (far slower than near) |
+| `drift: [vx, vy]` | constant travel, measured from scene time 0 — it also runs during a paint-on reveal, and a stroke lands already displaced by `drift × t0` (keep it slow, or use a `p.dynamic` layer for travel that must start at `p.livingStart`) | clouds 0.002–0.005 (far slower than near) |
 | `shimmer` | opacity flicker, random phase per stroke | glints 0.5 · sun path 0.6 · rays 0.3 |
 
 Scene-level:

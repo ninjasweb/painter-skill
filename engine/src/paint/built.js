@@ -26,7 +26,7 @@ export function paintMountains(layer, { top, bottom = 1.1, light, shadow, lightX
   const tri = (v) => v - Math.floor(v);
   // 1 = lit plane, 0 = shadow plane; edges are straight lines (arêtes), never blobs
   const face = (x, y) => { const s = owner(x, y), d = Math.max(0, y - s.y), axis = s.x + (noise2(d * 5, s.i * 3.1, seed) - 0.5) * 0.5 * d;
-    const side = (x - axis) * lightX < 0 ? 1 : 0, sgn = x > axis ? 1 : -1;
+    const side = (x - axis) * lightX > 0 ? 1 : 0, sgn = x > axis ? 1 : -1;   // lightX −1: light from the left, left flanks lit (as documented)
     const q = tri(Math.abs(x - axis) / facets - d / facets * 0.75 + noise2(s.i * 7.3, Math.floor(Math.abs(x - axis) / facets - d / facets * 0.75) * 1.7, seed + 5) * 0.4 + s.i * 0.37);
     if (side) return q < 0.24 ? 0 : 1;           // a secondary arête throws a narrow shadow across the lit flank
     return q > 0.84 ? 1 : 0; };                   // and a sliver of the shadow flank still catches the light

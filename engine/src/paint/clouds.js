@@ -8,9 +8,20 @@
 import { rng, clamp, lerp, smoothstep, noise2 } from '../core/math.js';
 import { col, mixOk, ramp, vary, shift, tone, mix, chroma } from '../core/color.js';
 
-/** Default midday palette, with the values measured on the demonstration's reference photo
- *  (sky ~0.44 · cloud shadows 0.70–0.80 grey-violet · mid 0.86 · lights 0.93–0.97 warm white). */
-export function cloudPalette({ warm = 0 } = {}) {
+/** Cloud mixes, dark to light: { deep, shadow, mid, light, highlight }.
+ *  time 'day' (default): the values measured on the demonstration's reference photo (sky ~0.44 · shadows 0.70–0.80
+ *  grey-violet · mid 0.86 · lights 0.93–0.97 warm white); warm 0…1 warms the lights.
+ *  time 'sunset': the whole cloud drops in value and takes the colour of the light — violet-grey shade (0.38–0.50),
+ *  dusty rose middle (0.64), orange-peach light (0.78) and a gold highlight (0.90) only where the low sun reaches.
+ *  Pull the colours of far clouds towards the low sky (mixOk) — they sit in more air. */
+export function cloudPalette({ warm = 0, time = 'day' } = {}) {
+  if (time === 'sunset') return {
+    deep: chroma(tone(mix({ dioxazineViolet: 1, ultramarine: 0.6, quinMagenta: 0.2, titaniumWhite: 2 }), 0.42), 0.7),
+    shadow: chroma(tone(mix({ dioxazineViolet: 1, quinMagenta: 0.4, ultramarine: 0.4, titaniumWhite: 3 }), 0.5), 0.65),
+    mid: chroma(tone(mix({ quinMagenta: 0.6, cadmiumOrange: 0.5, dioxazineViolet: 0.3, titaniumWhite: 4 }), 0.64), 0.65),
+    light: chroma(tone(mix({ cadmiumOrange: 1, quinMagenta: 0.25, titaniumWhite: 2 }), 0.78), 0.75),
+    highlight: chroma(tone(mix({ cadmiumYellow: 1, cadmiumOrange: 0.5, titaniumWhite: 2 }), 0.9), 0.75),
+  };
   return {
     deep: chroma(tone(mix({ ultramarine: 1, dioxazineViolet: 0.8, burntSienna: 0.45, titaniumWhite: 3 }), 0.7), 0.6),
     shadow: chroma(tone(mix({ ultramarine: 1, dioxazineViolet: 0.6, burntSienna: 0.3, titaniumWhite: 5 }), 0.775), 0.6),
@@ -30,7 +41,7 @@ export const CLOUD_STAGES = ['block-in', 'blend', 'lights', 'folds', 'edges', 'b
  *  silhouette (fraction of h; about 30 % of them become big heads standing proud of the outline) · flat: depth of
  *  the flat base (fraction of h) · light: direction TO the sun, screen space (y down), e.g. [-0.55, -0.83] = upper left.
  *  The seed decides the heads and knobs: try a few and keep the silhouette that reads best (thumbnails, like a painter). */
-export function billowCloud({ x, base, w, h, towers = 3, lobes = 22, rim = 0.06, seed = 1, light = [-0.55, -0.83], flat = 0.1 }) {
+export function billowCloud({ x, base, w, h, towers = 3, lobes = 22, rim = 0.06, seed = 1, light = [-0.55, -0.83], flat = 0.1, lobeLight = null, front = 0.55 }) {
   const r = rng(seed * 7919 + 17);
   const T = Array.isArray(towers) ? towers.map((t) => ({ cx: x + t.x * w, hw: t.w * w, ht: t.h * h }))
     : Array.from({ length: towers }, (_, i) => ({ cx: x + (i === 0 ? (r() - 0.5) * 0.25 : (r() - 0.5) * 0.85) * w, hw: w * r.range(0.14, 0.26), ht: h * (i === 0 ? 1 : r.range(0.4, 0.8)) }));
@@ -91,7 +102,11 @@ export function billowCloud({ x, base, w, h, towers = 3, lobes = 22, rim = 0.06,
   L.sort((a, b) => (a.kind === 'core') !== (b.kind === 'core') ? (a.kind === 'core' ? -1 : 1) : (a.y + a.r * 0.35) - (b.y + b.r * 0.35));
   L.forEach((l, i) => (l.i = i));
   const n = Math.hypot(light[0], light[1]) || 1;
-  return new BillowCloud(L, { x, base, w, h, top, flat, light: [light[0] / n, light[1] / n] });
+  const L2 = [light[0] / n, light[1] / n];
+  // a low sun (light nearly level or from below) models every lobe on its side and the heap turns into bubbles:
+  // let the big form carry the light then, and keep only a hint of each lobe's roundness
+  const lw = lobeLight ?? lerp(0.3, 0.12, smoothstep(-0.6, 0, L2[1]));
+  return new BillowCloud(L, { x, base, w, h, top, flat, light: L2, lz: front, lobeLight: lw });
 }
 
 export class BillowCloud {
@@ -180,14 +195,15 @@ export class BillowCloud {
       occl = fold * 0.8;
       for (const l of cand) if (l.i > front.i) { const d = this._d(l, x, y); if (d < 0 && d > -0.3 && y < l.y) occl = Math.max(occl, 0.75 * smoothstep(-0.3, 0, d) * smoothstep(-0.2, 0.6, (l.y - y) / l.r)); }
       const nx = (x - front.x) / front.r, ny = (y - front.y) / (front.r * front.sy), nn = Math.min(1, Math.hypot(nx, ny)), nz = Math.sqrt(Math.max(0, 1 - nn * nn));
-      const [lx, ly] = this.light, lz = 0.55, ln = Math.hypot(lx, ly, lz);
+      const [lx, ly] = this.light, lz = this.lz, ln = Math.hypot(lx, ly, lz);
       const diffuse = clamp((nx * lx + ny * ly + nz * lz) / ln);
       // the whole heap is a big rounded form too: lighter on the sun side and the tops, grey towards the base
       const gx = (x - this.x) / (this.w * 0.5), gy = (y - (this.base - this.h * 0.55)) / (this.h * 0.55);
       const global = clamp(0.52 + 0.75 * (gx * this.light[0] + gy * this.light[1]));
       const rel = clamp((this.base - y) / this.h);
-      const baseShade = smoothstep(0.42, 0.05, rel);
-      let f = 0.3 * diffuse + 0.7 * global - 0.45 * occl - 0.22 * baseShade;
+      // the base is in shade under a high sun; a sun below the cloud lights it instead (sunset bellies)
+      const baseShade = smoothstep(0.42, 0.05, rel) * smoothstep(0.3, -0.2, ly);
+      let f = this.lobeLight * diffuse + (1 - this.lobeLight) * global - 0.45 * occl - 0.22 * baseShade;
       f = clamp((f - 0.05) * 1.2);
       res = { inside: outer, lobe: front, depth: fd, diffuse, global, occl, base: baseShade, f, rel };
     }
@@ -285,18 +301,21 @@ export function paintBillowCloud(layer, cloud, { sky, colors = cloudPalette(), s
   //     behind it — dark against light, so each lobe's lit top reads as a scallop (the scale pattern of a cumulus).
   //     Broad and soft on purpose: a thin dark crescent here reads as an ink outline.
   ph('folds');
+  // the fold lies just outside the nearer lobe's LIT rim (on the lobe behind): above it under a high sun, towards
+  // the sun's side when the sun is low — never on the shadow side, where it would only draw a dark line
+  const foldDir = Math.atan2(Math.min(ly, -0.35), lx * 0.6);
   for (const l of cloud.lobes) {
     if (l.kind === 'core' || l.r < size * 0.25) continue;
     const span = 1.5 + rr() * 0.5, steps = Math.max(2, Math.round((l.r * span) / Math.max(size * 0.35, l.r * 0.45)));
     for (let k = 0; k < steps; k++) {
-      const a = -Math.PI / 2 + (lx * 0.35) + span * ((k + rr.range(0.25, 0.75)) / steps - 0.5);
+      const a = foldDir + span * ((k + rr.range(0.25, 0.75)) / steps - 0.5);
       const ro = l.r * rr.range(1.1, 1.22), px = l.x + Math.cos(a) * ro, py = l.y + Math.sin(a) * ro * l.sy;
       const s = cloud.at(px, py); if (!s.lobe || s.lobe.i >= l.i || s.inside < 0.02) continue;      // only over a lobe behind this one
       const own = cloud.at(l.x + Math.cos(a) * l.r * 0.85, l.y + Math.sin(a) * l.r * 0.85 * l.sy); if (own.lobe !== l) continue;
       const wd = clamp(l.r * rr.range(0.3, 0.42), size * 0.15, size * 0.9);
       const st = { x: px, y: py, angle: a + Math.PI / 2, length: wd * rr.range(1.8, 2.6) }; if (!fits(st)) continue;
       layer.stroke({ brush: 'wash', ...st, width: wd, bend: 0.2,
-        color: vary(tint(clamp(Math.min(s.f, own.f) - 0.2)), rr, 0.006, 0.003, 3), soft: 0.95, thick: 0.01, fray: 0.05, bristles: 4, opacity: 0.45 * detail, pickup: 0.2, drift });
+        color: vary(tint(clamp(Math.min(s.f, own.f) - 0.14)), rr, 0.006, 0.003, 3), soft: 0.95, thick: 0.01, fray: 0.05, bristles: 4, opacity: 0.4 * detail * clamp(own.f * 1.4), pickup: 0.25, drift });   // a fold only shows against light
     }
   }
   // 4. cut the silhouette with sky colour: crisp scallops on the lit side, a soft lost edge on the shadow side
@@ -304,7 +323,7 @@ export function paintBillowCloud(layer, cloud, { sky, colors = cloudPalette(), s
   //    The strokes sit just outside the outline and cover the soft halo the body strokes left, so the sky meets the
   //    cloud in one clean edge; no pickup (a white-tinted sky stroke reads as a stitch).
   const sunSide = (x, y) => clamp(0.5 + 0.5 * (((x - cloud.x) / cloud.w) * lx * 2 + ((y - cloud.base + cloud.h * 0.5) / cloud.h) * ly));
-  const reach = size * 0.55;
+  const reach = size * 0.9;                                  // covers the half-width of the widest body strokes
   //    They are sky strokes — the sky's brush, direction and paint thickness — so the ring around the cloud has the
   //    same texture as the rest of the sky (tangent strokes or thin paint here read as a halo).
   layer.scatter({ bounds: B, spacing: size * 0.13, order: 'random', brush: 'flat',

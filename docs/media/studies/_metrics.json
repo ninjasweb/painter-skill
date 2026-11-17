@@ -258,13 +258,13 @@
   "file": "summer-cumulus.jpg",
   "value_masses_dark_mid_light": [
    0.52,
-   0.32,
+   0.33,
    0.15
   ],
   "value_centers": [
    0.42,
    0.61,
-   0.8
+   0.81
   ],
   "key_mean_L": 0.54,
   "value_range_p2_p98": [
@@ -273,7 +273,7 @@
   ],
   "L_top_mid_bottom": [
    0.46,
-   0.64,
+   0.65,
    0.52
   ],
   "chroma_mean": 0.056,
@@ -285,18 +285,18 @@
    0.35,
    0.17
   ],
-  "edge_density": 0.0124,
-  "edge_density_focal_vs_rest": 1.16,
+  "edge_density": 0.0123,
+  "edge_density_focal_vs_rest": 1.17,
   "palette": [
    {
     "hex": "#2d390f",
-    "share": 0.077,
-    "L": 0.32,
+    "share": 0.078,
+    "L": 0.33,
     "C": 0.064
    },
    {
     "hex": "#2e447d",
-    "share": 0.2,
+    "share": 0.195,
     "L": 0.4,
     "C": 0.1
    },
@@ -308,31 +308,31 @@
    },
    {
     "hex": "#445e89",
-    "share": 0.177,
+    "share": 0.178,
     "L": 0.48,
-    "C": 0.076
+    "C": 0.077
    },
    {
-    "hex": "#5e788a",
-    "share": 0.17,
+    "hex": "#5d778a",
+    "share": 0.175,
     "L": 0.56,
-    "C": 0.042
+    "C": 0.043
    },
    {
-    "hex": "#84979d",
+    "hex": "#83979d",
     "share": 0.142,
     "L": 0.66,
     "C": 0.023
    },
    {
     "hex": "#b0b4b6",
-    "share": 0.072,
+    "share": 0.071,
     "L": 0.77,
     "C": 0.006
    },
    {
     "hex": "#d9dad3",
-    "share": 0.081,
+    "share": 0.083,
     "L": 0.89,
     "C": 0.009
    }
